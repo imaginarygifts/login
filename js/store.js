@@ -224,8 +224,18 @@ function renderProducts() {
       <div class="info">
         <h4>${p.name}</h4>
         <p>₹${p.basePrice}</p>
+<button class="add-cart-btn" title="Add to cart">
+      🛒
+    </button>
       </div>
     `;
+const cartBtn = card.querySelector(".add-cart-btn");
+
+cartBtn.onclick = (e) => {
+  e.stopPropagation(); // ❌ stop product page open
+  addToCart(p);
+};
+
 
     card.onclick = () => {
       location.href = `product.html?id=${p.id}`;
@@ -233,6 +243,39 @@ function renderProducts() {
 
     grid.appendChild(card);
   });
+}
+
+
+
+
+function addToCart(product) {
+  const uid = localStorage.getItem("customerUid");
+
+  if (!uid) {
+    localStorage.setItem("redirectAfterLogin", location.href);
+    location.href = "login.html";
+    return;
+  }
+
+  const key = `cart_${uid}`;
+  const cart = JSON.parse(localStorage.getItem(key)) || { items: [] };
+
+  const existing = cart.items.find(i => i.productId === product.id);
+
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.items.push({
+      productId: product.id,
+      name: product.name,
+      price: product.basePrice,
+      image: product.images?.[0] || "",
+      qty: 1
+    });
+  }
+
+  localStorage.setItem(key, JSON.stringify(cart));
+  updateCartCount();
 }
 
 /* ================= INIT ================= */
