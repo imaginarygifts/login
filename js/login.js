@@ -5,7 +5,7 @@ import {
   signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* 🔥 YOUR FIREBASE CONFIG */
+/* 🔥 FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyDaeaJy8haKhn3Ve5rUdrj7XItXPI-ujDU",
   authDomain: "sellfix-designing.firebaseapp.com",
@@ -18,6 +18,8 @@ const auth = getAuth(app);
 
 /* ================= STATE ================= */
 let confirmationResult = null;
+let resendTimer = null;
+let resendSeconds = 60;
 
 /* ================= DOM ================= */
 const phoneInput = document.getElementById("phone");
@@ -25,6 +27,9 @@ const sendOtpBtn = document.getElementById("sendOtpBtn");
 const otpBox = document.getElementById("otpBox");
 const otpInput = document.getElementById("otp");
 const verifyOtpBtn = document.getElementById("verifyOtpBtn");
+const resendBtn = document.getElementById("resendOtpBtn");
+const resendText = document.getElementById("resendTimer");
+const loadingPopup = document.getElementById("loadingPopup");
 
 /* ================= RECAPTCHA ================= */
 window.recaptchaVerifier = new RecaptchaVerifier(
@@ -35,37 +40,51 @@ window.recaptchaVerifier = new RecaptchaVerifier(
 
 /* ================= HELPERS ================= */
 function normalizeIndianPhone(input) {
-  let phone = input.trim();
+  let phone = input.trim().replace(/\D/g, "");
 
-  // remove spaces / dashes
-  phone = phone.replace(/[^0-9+]/g, "");
+  if (!/^\d{10}$/.test(phone)) return null;
+  return "+91" + phone;
+}
 
-  // if starts with 91 but no +
-  if (phone.length === 12 && phone.startsWith("91")) {
-    phone = "+" + phone;
-  }
+function showLoading(text) {
+  loadingPopup.querySelector("span").innerText = text;
+  loadingPopup.style.display = "flex";
+}
 
-  // if only 10 digits → add +91
-  if (/^\d{10}$/.test(phone)) {
-    phone = "+91" + phone;
-  }
+function hideLoading() {
+  loadingPopup.style.display = "none";
+}
 
-  return phone;
+function startResendTimer() {
+  resendSeconds = 60;
+  resendBtn.disabled = true;
+  resendText.innerText = `Resend OTP in ${resendSeconds}s`;
+
+  resendTimer = setInterval(() => {
+    resendSeconds--;
+    resendText.innerText = `Resend OTP in ${resendSeconds}s`;
+
+    if (resendSeconds <= 0) {
+      clearInterval(resendTimer);
+      resendText.innerText = "";
+      resendBtn.disabled = false;
+    }
+  }, 1000);
 }
 
 /* ================= SEND OTP ================= */
-sendOtpBtn.addEventListener("click", async () => {
-  let phone = phoneInput.value;
+async function sendOtp() {
+  let phone = normalizeIndianPhone(phoneInput.value);
 
-  phone = normalizeIndianPhone(phone);
-
-  if (!phone.startsWith("+91") || phone.length !== 13) {
+  if (!phone) {
     alert("Enter valid 10 digit mobile number");
     return;
   }
 
   try {
     sendOtpBtn.disabled = true;
+    otpBox.style.display = "block";
+    startResendTimer();
 
     confirmationResult = await signInWithPhoneNumber(
       auth,
@@ -73,15 +92,17 @@ sendOtpBtn.addEventListener("click", async () => {
       window.recaptchaVerifier
     );
 
-    otpBox.style.display = "block";
-    alert("OTP sent");
-
   } catch (err) {
     console.error(err);
     alert(err.message);
     sendOtpBtn.disabled = false;
+    otpBox.style.display = "none";
+    clearInterval(resendTimer);
   }
-});
+}
+
+sendOtpBtn.addEventListener("click", sendOtp);
+resendBtn.addEventListener("click", sendOtp);
 
 /* ================= VERIFY OTP ================= */
 verifyOtpBtn.addEventListener("click", async () => {
@@ -93,14 +114,15 @@ verifyOtpBtn.addEventListener("click", async () => {
   }
 
   try {
+    showLoading("Verifying OTP...");
+    verifyOtpBtn.disabled = true;
+
     const result = await confirmationResult.confirm(otp);
     const user = result.user;
 
     /* SAVE LOGIN */
     localStorage.setItem("customerUid", user.uid);
     localStorage.setItem("customerPhone", user.phoneNumber);
-
-    alert("Login successful");
 
     /* REDIRECT */
     const redirect =
@@ -112,5 +134,7 @@ verifyOtpBtn.addEventListener("click", async () => {
   } catch (err) {
     console.error(err);
     alert("Invalid OTP");
+    verifyOtpBtn.disabled = false;
+    hideLoading();
   }
 });
