@@ -82,10 +82,10 @@ window.goAddresses = () => {
 
 /* ================= BESTSELLER ================= */
 window.goBestSeller = () => {
-  toggleSidebar();
   if (typeof window.filterBestSeller === "function") {
     window.filterBestSeller();
   }
+  toggleSidebar(); // ✅ CLOSE SIDEBAR
 };
 
 /* ================= CATEGORIES ================= */
@@ -93,31 +93,35 @@ async function loadCategories() {
   const snap = await getDocs(collection(db, "categories"));
   categoryList.innerHTML = "";
 
-  snap.forEach(doc => {
+  snap.forEach(catDoc => {
     const li = document.createElement("li");
-    li.innerText = doc.data().name;
+    li.innerText = catDoc.data().name;
 
     li.onclick = () => {
+      // 🔒 Close sidebar first
       toggleSidebar();
 
-      /* 🔥 Trigger store.js category filter */
+      // 🔥 Try to click existing category pill from store.js
       const pill = document.querySelector(
-        `.category-pill[data-id="${doc.id}"]`
+        `.category-pill[data-id="${catDoc.id}"]`
       );
 
       if (pill) {
-        pill.click();
-      } else {
-        // fallback (if pills not loaded yet)
-        window.activeCategory = doc.id;
-        window.renderProducts?.();
+        pill.click(); // ✅ BEST CASE (uses existing logic)
+      } 
+      else {
+        // ⚠️ Fallback: pills not rendered yet
+        window.activeCategory = catDoc.id;
+
+        if (typeof window.renderProducts === "function") {
+          window.renderProducts();
+        }
       }
     };
 
     categoryList.appendChild(li);
   });
 }
-loadCategories();
 
 /* ================= CATEGORY ACCORDION ================= */
 const accordion = document.querySelector(".accordion");
