@@ -1,20 +1,15 @@
-import { auth } from "./firebase.js";
-import {
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+(function () {
+  const customerUid = localStorage.getItem("customerUid");
 
-window.requireCustomerLogin = function () {
-  return new Promise((resolve) => {
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        resolve(user);
-      } else {
-        localStorage.setItem(
-          "redirectAfterLogin",
-          location.href
-        );
-        location.href = "login.html";
-      }
-    });
-  });
-};
+  // Pages that REQUIRE login
+  const protectedPages = [
+    "order.html"
+  ];
+
+  const currentPage = location.pathname.split("/").pop();
+
+  if (protectedPages.includes(currentPage) && !customerUid) {
+    localStorage.setItem("redirectAfterLogin", currentPage);
+    location.href = "login.html";
+  }
+})();
