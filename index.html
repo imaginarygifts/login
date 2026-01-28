@@ -4,29 +4,23 @@
   <meta charset="UTF-8">
   <title>Sellfix Designing</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="css/store.css">
+  <link rel="stylesheet" href="css/customer.css">
 </head>
 <body>
 
 <header class="topbar">
   <h1>Sellfix Designing</h1>
-<div class="header-actions">
-  <button class="logout-btn" onclick="customerLogout()">Logout</button>
-</div>
-<script>
-  const uid = localStorage.getItem("customerUid");
-  const logoutBtn = document.querySelector(".logout-btn");
 
-  if (!uid && logoutBtn) {
-    logoutBtn.style.display = "none";
-  }
-</script>
+  <div class="header-actions">
+    <button id="logoutBtn" class="logout-btn">Logout</button>
+  </div>
 </header>
 
 <div id="categoryBar" class="category-scroll"></div>
-<div class="tag-filter-row" id="tagFilterRow">
-  <!-- Tags will load here -->
-</div>
+
+<div class="tag-filter-row" id="tagFilterRow"></div>
 
 <main>
   <div id="productGrid" class="product-grid"></div>
@@ -34,11 +28,26 @@
 
 <div id="shareBtn" onclick="sharePage()">🔗</div>
 
+<!-- ===== SCRIPTS (ORDER IS IMPORTANT) ===== -->
+
 <script type="module" src="js/store.js"></script>
-
 <script src="js/share.js"></script>
-
 <script src="js/customer-logout.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const uid = localStorage.getItem("customerUid");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    if (!uid) {
+      logoutBtn.style.display = "none";
+    }
+
+    logoutBtn.addEventListener("click", () => {
+      customerLogout();
+    });
+  });
+</script>
 
 </body>
 </html>
