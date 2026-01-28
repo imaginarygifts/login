@@ -19,6 +19,51 @@ let selected = {
   imageLinks: {}
 };
 
+
+
+window.addToCart = function () {
+  const uid = localStorage.getItem("customerUid");
+
+  if (!uid) {
+    localStorage.setItem("redirectAfterLogin", location.href);
+    location.href = "login.html";
+    return;
+  }
+
+  const cartKey = `cart_${uid}`;
+  const cart = JSON.parse(localStorage.getItem(cartKey)) || { items: [] };
+
+  const item = {
+    productId: product.id,
+    name: product.name,
+    image: product.images?.[0] || "",
+    basePrice: product.basePrice,
+    finalPrice,
+
+    variants: {
+      color: selected.color || null,
+      size: selected.size || null
+    },
+
+    options: Object.keys(selected.options || {}).map(i => ({
+      label: product.customOptions?.[i]?.label || "",
+      value: selected.optionValues?.[i] || ""
+    })),
+
+    qty: 1
+  };
+
+  cart.items.push(item);
+  localStorage.setItem(cartKey, JSON.stringify(cart));
+
+  alert("Added to cart 🛒");
+};
+
+
+
+
+
+
 // ===== LOAD PRODUCT =====
 async function loadProduct() {
   const snap = await getDoc(doc(db, "products", id));
