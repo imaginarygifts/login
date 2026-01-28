@@ -14,6 +14,14 @@
   Logout
 </button>
 </header>
+<script>
+  const uid = localStorage.getItem("customerUid");
+  const logoutBtn = document.querySelector(".logout-btn");
+
+  if (!uid && logoutBtn) {
+    logoutBtn.style.display = "none";
+  }
+</script>
 
 <div id="categoryBar" class="category-scroll"></div>
 <div class="tag-filter-row" id="tagFilterRow">
