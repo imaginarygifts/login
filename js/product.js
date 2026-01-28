@@ -373,13 +373,7 @@ window.orderNow = async function () {
 //===== buy now =====
 
 window.buyNow = function () {
-  const customer = JSON.parse(localStorage.getItem("customer"));
-
-  if (!customer) {
-    localStorage.setItem("redirectAfterLogin", location.href);
-    location.href = "login.html";
-    return;
-  }
+  const customerUid = localStorage.getItem("customerUid");
 
   const data = {
     product,
@@ -392,5 +386,14 @@ window.buyNow = function () {
   };
 
   localStorage.setItem("checkoutData", JSON.stringify(data));
+
+  // 🔐 NOT LOGGED IN → LOGIN FIRST
+  if (!customerUid) {
+    localStorage.setItem("redirectAfterLogin", "order.html");
+    location.href = "login.html";
+    return;
+  }
+
+  // ✅ LOGGED IN → GO TO ORDER
   location.href = "order.html";
 };
