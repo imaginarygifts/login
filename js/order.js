@@ -20,11 +20,24 @@ let appliedCoupon = null;
 let selectedPaymentMode = "online";
 let availableCoupons = [];
 let orderNumber = null;
+let isCartCheckout = false;
 
 /* ======================================================
-   LOAD ORDER DATA
+   LOAD ORDER
 ====================================================== */
 function loadOrder() {
+  const fromCart = localStorage.getItem("checkoutFromCart");
+
+  if (fromCart) {
+    isCartCheckout = true;
+    loadCartOrder();
+  } else {
+    loadSingleOrder();
+  }
+}
+
+/* ================= SINGLE PRODUCT ================= */
+function loadSingleOrder() {
   const raw = localStorage.getItem("checkoutData");
   if (!raw) {
     alert("No product selected");
@@ -35,23 +48,43 @@ function loadOrder() {
   orderData = JSON.parse(raw);
   subTotal = Number(orderData.finalPrice || 0);
 
-  renderSummary();
-  setupPaymentModes();
+  renderSingleSummary();
+  setupSinglePaymentModes();
   loadCoupons();
   recalcPrice();
 }
 
-loadOrder();
+/* ================= CART ORDER ================= */
+function loadCartOrder() {
+  const uid = localStorage.getItem("customerUid");
+  const cart = JSON.parse(localStorage.getItem(`cart_${uid}`));
+
+  if (!cart || !cart.items || !cart.items.length) {
+    alert("Cart is empty");
+    location.href = "index.html";
+    return;
+  }
+
+  orderData = { items: cart.items };
+  subTotal = cart.items.reduce(
+    (sum, i) => sum + i.finalPrice * i.qty,
+    0
+  );
+
+  renderCartSummary();
+  setupCartPaymentModes();
+  loadCoupons();
+  recalcPrice();
+}
 
 /* ======================================================
-   ORDER NUMBER (AUTO INCREMENT)
+   ORDER NUMBER
 ====================================================== */
 async function generateOrderNumber() {
   const ref = doc(db, "counters", "orders");
   const snap = await getDoc(ref);
 
   let next = 1001;
-
   if (snap.exists()) {
     next = (snap.data().current || 1000) + 1;
     await updateDoc(ref, { current: next });
@@ -65,7 +98,7 @@ async function generateOrderNumber() {
 /* ======================================================
    RENDER SUMMARY
 ====================================================== */
-function renderSummary() {
+function renderSingleSummary() {
   const box = document.getElementById("orderSummary");
 
   let html = `
@@ -88,30 +121,43 @@ function renderSummary() {
   box.innerHTML = html;
 }
 
+function renderCartSummary() {
+  const box = document.getElementById("orderSummary");
+  let html = `<b>Items:</b><br><br>`;
+
+  orderData.items.forEach(i => {
+    html += `
+      <div style="margin-bottom:8px">
+        ${i.name} × ${i.qty}<br>
+        ₹${i.finalPrice * i.qty}
+      </div>
+    `;
+  });
+
+  box.innerHTML = html;
+}
+
 /* ======================================================
    PAYMENT MODES
 ====================================================== */
-function setupPaymentModes() {
+function setupSinglePaymentModes() {
   const ps = orderData.product.paymentSettings || {};
 
-  const onlineLabel = document.getElementById("onlineOption");
-  const codLabel = document.getElementById("codOption");
-  const advanceLabel = document.getElementById("advanceOption");
+  ["online","cod","advance"].forEach(m => {
+    const el = document.getElementById(`${m}Option`);
+    if (el && !ps[m]?.enabled) el.style.display = "none";
+  });
 
-  if (!ps.online?.enabled && onlineLabel) onlineLabel.style.display = "none";
-  if (!ps.cod?.enabled && codLabel) codLabel.style.display = "none";
-  if (!ps.advance?.enabled && advanceLabel) advanceLabel.style.display = "none";
+  selectedPaymentMode =
+    ps.online?.enabled ? "online" :
+    ps.cod?.enabled ? "cod" :
+    ps.advance?.enabled ? "advance" : "online";
 
-  if (ps.online?.enabled) selectedPaymentMode = "online";
-  else if (ps.cod?.enabled) selectedPaymentMode = "cod";
-  else if (ps.advance?.enabled) selectedPaymentMode = "advance";
+  document.querySelector(`input[value="${selectedPaymentMode}"]`).checked = true;
 
-  const firstRadio = document.querySelector(`input[value="${selectedPaymentMode}"]`);
-  if (firstRadio) firstRadio.checked = true;
-
-  document.querySelectorAll("input[name='paymode']").forEach(radio => {
-    radio.addEventListener("change", () => {
-      selectedPaymentMode = radio.value;
+  document.querySelectorAll("input[name='paymode']").forEach(r => {
+    r.addEventListener("change", () => {
+      selectedPaymentMode = r.value;
       removeCoupon();
       loadCoupons();
       recalcPrice();
@@ -119,16 +165,19 @@ function setupPaymentModes() {
   });
 }
 
+function setupCartPaymentModes() {
+  selectedPaymentMode = "online";
+  document.querySelector(`input[value="online"]`).checked = true;
+}
+
 /* ======================================================
    PRICE
 ====================================================== */
 function recalcPrice() {
-  finalAmount = subTotal - discount;
-  if (finalAmount < 0) finalAmount = 0;
-
-  document.getElementById("subTotal").innerText = "₹" + subTotal;
-  document.getElementById("discountAmount").innerText = "-₹" + discount;
-  document.getElementById("finalAmount").innerText = "₹" + finalAmount;
+  finalAmount = Math.max(subTotal - discount, 0);
+  subTotalEl.innerText = "₹" + subTotal;
+  discountAmount.innerText = "-₹" + discount;
+  finalAmountEl.innerText = "₹" + finalAmount;
 }
 
 /* ======================================================
@@ -141,19 +190,11 @@ async function loadCoupons() {
 
   snap.forEach(d => {
     const c = d.data();
-
     if (!c.active) return;
-
-    const expiry = c.expiry?.toDate ? c.expiry.toDate() : null;
+    const expiry = c.expiry?.toDate?.();
     if (expiry && expiry < now) return;
-
     if (c.minOrder && subTotal < c.minOrder) return;
     if (c.allowedModes && !c.allowedModes.includes(selectedPaymentMode)) return;
-
-    if (c.scope === "product" && c.productIds?.length) {
-      if (!c.productIds.includes(orderData.product.id)) return;
-    }
-
     availableCoupons.push({ id: d.id, ...c });
   });
 
@@ -161,59 +202,44 @@ async function loadCoupons() {
 }
 
 function renderCoupons() {
-  const list = document.getElementById("couponListUI");
-  if (!list) return;
-
-  list.innerHTML = "";
-
+  couponListUI.innerHTML = "";
   if (!availableCoupons.length) {
-    list.innerHTML = `<p class="no-coupon">No coupons available</p>`;
+    couponListUI.innerHTML = `<p class="no-coupon">No coupons available</p>`;
     return;
   }
 
   availableCoupons.forEach(c => {
     const div = document.createElement("div");
     div.className = "coupon-card";
+    if (appliedCoupon?.id === c.id) div.classList.add("applied");
 
-    if (appliedCoupon && appliedCoupon.id === c.id) div.classList.add("applied");
-
-    const valueText =
+    const value =
       c.type === "percent" ? `${c.value}% OFF` : `₹${c.value} OFF`;
 
-    const btnText =
-      appliedCoupon && appliedCoupon.id === c.id ? "Remove" : "Apply";
-
     div.innerHTML = `
-      <div>
-        <b>${c.code}</b>
-        <small>${valueText}</small>
-      </div>
-      <button onclick="${btnText === "Remove"
-        ? `removeCoupon()`
+      <div><b>${c.code}</b><small>${value}</small></div>
+      <button onclick="${appliedCoupon?.id === c.id
+        ? "removeCoupon()"
         : `applyCoupon('${c.id}')`}">
-        ${btnText}
+        ${appliedCoupon?.id === c.id ? "Remove" : "Apply"}
       </button>
     `;
-
-    list.appendChild(div);
+    couponListUI.appendChild(div);
   });
 }
 
-window.applyCoupon = function (id) {
+window.applyCoupon = id => {
   const c = availableCoupons.find(x => x.id === id);
   if (!c) return;
-
-  discount =
-    c.type === "percent"
-      ? Math.round(subTotal * (c.value / 100))
-      : c.value;
-
+  discount = c.type === "percent"
+    ? Math.round(subTotal * (c.value / 100))
+    : c.value;
   appliedCoupon = c;
   renderCoupons();
   recalcPrice();
 };
 
-window.removeCoupon = function () {
+window.removeCoupon = () => {
   appliedCoupon = null;
   discount = 0;
   renderCoupons();
@@ -221,65 +247,17 @@ window.removeCoupon = function () {
 };
 
 /* ======================================================
-   FORM VALIDATION
-====================================================== */
-function validateForm() {
-  const name = custName.value.trim();
-  const phone = custPhone.value.trim();
-  const address = custAddress.value.trim();
-  const pincode = custPincode.value.trim();
-
-  if (!name || !phone || !address || !pincode) {
-    alert("Please fill all fields");
-    return null;
-  }
-
-  return { name, phone, address, pincode };
-}
-
-/* ======================================================
-   SAVE ORDER (FIRESTORE)
+   SAVE ORDER
 ====================================================== */
 async function saveOrder(paymentMode, paymentStatus, paymentId = null) {
-  const customer = validateForm();
-  if (!customer) return null;
-
-  orderNumber = await generateOrderNumber();
-
   const order = {
-    orderNumber,
-
-    productId: orderData.product.id || null,
-    productName: orderData.product.name,
-    productImage: orderData.product.images?.[0] || "",
-    categoryId: orderData.product.categoryId || null,
-    tags: orderData.product.tags || [],
-
-    variants: {
-      color: orderData.color || null,
-      size: orderData.size || null
-    },
-
-    customOptions: Object.keys(orderData.options || {}).map(i => ({
-      label: orderData.product.customOptions[i]?.label,
-      value: orderData.optionValues?.[i] || "Selected",
-      image: orderData.imageLinks?.[i] || null
-    })),
-
-    pricing: {
-      subTotal,
-      discount,
-      finalAmount
-    },
-
-    customer,
-
-    payment: {
-      mode: paymentMode,
-      status: paymentStatus,
-      paymentId
-    },
-
+    orderNumber: await generateOrderNumber(),
+    items: isCartCheckout ? orderData.items : null,
+    productId: !isCartCheckout ? orderData.product.id : null,
+    productName: !isCartCheckout ? orderData.product.name : null,
+    productImage: !isCartCheckout ? orderData.product.images?.[0] : null,
+    pricing: { subTotal, discount, finalAmount },
+    payment: { mode: paymentMode, status: paymentStatus, paymentId },
     orderStatus: "pending",
     source: "frontend",
     createdAt: Date.now()
@@ -293,19 +271,13 @@ async function saveOrder(paymentMode, paymentStatus, paymentId = null) {
    PLACE ORDER
 ====================================================== */
 window.placeOrder = async function () {
-  try {
-    const customer = validateForm();
-    if (!customer) return;
-
-    if (selectedPaymentMode === "cod") {
-      const order = await saveOrder("cod", "pending");
-      sendWhatsApp(order);
-      alert("Order placed successfully");
-    } else {
-      startPayment(customer);
-    }
-  } catch (e) {
-    alert("Order failed: " + e.message);
+  if (selectedPaymentMode === "cod") {
+    const order = await saveOrder("cod", "pending");
+    sendWhatsApp(order);
+    cleanupCart();
+    alert("Order placed");
+  } else {
+    startPayment();
   }
 };
 
@@ -316,59 +288,50 @@ function sendWhatsApp(order) {
   let msg = `🛍 *New Order — Imaginary Gifts*\n\n`;
   msg += `🧾 Order No: *${order.orderNumber}*\n\n`;
 
-  msg += `Name: ${order.customer.name}\n`;
-  msg += `Phone: ${order.customer.phone}\n`;
-  msg += `Address: ${order.customer.address}\n`;
-  msg += `Pincode: ${order.customer.pincode}\n\n`;
-
-  msg += `Product: ${order.productName}\n`;
-
-  if (order.variants.color) msg += `Color: ${order.variants.color.name}\n`;
-  if (order.variants.size) msg += `Size: ${order.variants.size.name}\n`;
-
-  if (order.customOptions.length) {
-    msg += `Options:\n`;
-    order.customOptions.forEach(o => {
-      msg += `- ${o.label}: ${o.value}\n`;
+  if (order.items) {
+    order.items.forEach(i => {
+      msg += `- ${i.name} × ${i.qty} = ₹${i.finalPrice * i.qty}\n`;
     });
+  } else {
+    msg += `Product: ${order.productName}\n`;
   }
 
-  msg += `\nTotal: ₹${order.pricing.finalAmount}\n`;
-  msg += `Payment: ${order.payment.mode}\n`;
-
-  const url = `https://wa.me/917030191819?text=${encodeURIComponent(msg)}`;
-  window.open(url, "_blank");
+  msg += `\nTotal: ₹${order.pricing.finalAmount}`;
+  window.open(
+    `https://wa.me/917030191819?text=${encodeURIComponent(msg)}`,
+    "_blank"
+  );
 }
 
 /* ======================================================
    RAZORPAY
 ====================================================== */
-function startPayment(customer) {
-  const options = {
+function startPayment() {
+  const rzp = new Razorpay({
     key: "rzp_test_8OmRCO9SiPeXWg",
     amount: finalAmount * 100,
     currency: "INR",
     name: "Imaginary Gifts",
-    description: "Order Payment",
-
-    handler: async function (response) {
-      const order = await saveOrder(
-        "online",
-        "paid",
-        response.razorpay_payment_id
-      );
+    handler: async r => {
+      const order = await saveOrder("online", "paid", r.razorpay_payment_id);
       sendWhatsApp(order);
+      cleanupCart();
       alert("Payment successful");
-    },
-
-    prefill: {
-      name: customer.name,
-      contact: customer.phone
-    },
-
-    theme: { color: "#00f5ff" }
-  };
-
-  const rzp = new Razorpay(options);
+    }
+  });
   rzp.open();
 }
+
+/* ======================================================
+   CLEANUP
+====================================================== */
+function cleanupCart() {
+  localStorage.removeItem("checkoutFromCart");
+  const uid = localStorage.getItem("customerUid");
+  if (uid) localStorage.removeItem(`cart_${uid}`);
+}
+
+/* ======================================================
+   INIT
+====================================================== */
+loadOrder();
