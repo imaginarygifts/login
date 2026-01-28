@@ -13,7 +13,6 @@
 <div class="header-actions">
   <button class="logout-btn" onclick="customerLogout()">Logout</button>
 </div>
-</header>
 <script>
   const uid = localStorage.getItem("customerUid");
   const logoutBtn = document.querySelector(".logout-btn");
@@ -22,7 +21,7 @@
     logoutBtn.style.display = "none";
   }
 </script>
-<script src="js/customer-logout.js"></script>
+</header>
 
 <div id="categoryBar" class="category-scroll"></div>
 <div class="tag-filter-row" id="tagFilterRow">
@@ -38,5 +37,8 @@
 <script type="module" src="js/store.js"></script>
 
 <script src="js/share.js"></script>
+
+<script src="js/customer-logout.js"></script>
+
 </body>
 </html>
