@@ -10,50 +10,46 @@
 </head>
 <body>
 
-<header class="topbar">
-<!-- ☰ HAMBURGER -->
-<div class="menu-btn" onclick="toggleSidebar()">☰</div>
+<<header class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+
+  <h1 class="brand">Sellfix Designing</h1>
+
+  <button class="auth-btn" id="authBtn"></button>
+</header>
+
+
 
 <!-- SIDEBAR -->
-<div id="sidebar" class="sidebar">
-  <div class="sidebar-header">
-    <div class="user-row">
-      <span class="user-icon">👤</span>
-      <span id="sidebarUser">User</span>
-    </div>
+<aside id="sidebar" class="sidebar">
+  <div class="sidebar-user">
+    👤 <span id="sidebarUser">User</span>
   </div>
 
-  <ul class="sidebar-menu">
+  <ul class="menu">
     <li onclick="goShop()">🛍 Shop</li>
 
-    <li class="has-sub">
+    <li class="accordion">
       📂 Categories
-      <ul id="sidebarCategories"></ul>
+      <ul id="categoryList" class="submenu"></ul>
     </li>
 
     <li onclick="filterBestSeller()">⭐ Bestseller</li>
-
     <li onclick="goCart()">🛒 Cart</li>
     <li onclick="goWishlist()">❤️ Wishlist</li>
-
     <li onclick="goMyOrders()">📦 My Orders</li>
     <li onclick="goAddresses()">🏠 Saved Addresses</li>
 
     <li class="divider"></li>
 
-    <li id="loginLogoutBtn" onclick="handleAuth()">🔐 Login</li>
+    <li onclick="handleAuth()" id="sidebarAuthBtn">🔐 Login</li>
   </ul>
-</div>
+</aside>
 
 <!-- OVERLAY -->
-<div id="overlay" onclick="toggleSidebar()"></div>
+<div id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-  <h1 class="brand">Sellfix Designing</h1>
 
-  <div class="header-actions">
-    <button id="authBtn" class="auth-btn">Login</button>
-  </div>
-</header>
 
 <div id="categoryBar" class="category-scroll"></div>
 
