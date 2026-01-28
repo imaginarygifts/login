@@ -471,3 +471,26 @@ body {
 #sidebarOverlay.show {
   display: block;
 }
+
+
+
+
+
+.cart-icon {
+  position: relative;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.cart-count {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  min-width: 18px;
+  text-align: center;
+}
