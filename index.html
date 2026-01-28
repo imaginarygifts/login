@@ -10,6 +10,45 @@
 </head>
 <body>
 
+<!-- ☰ HAMBURGER -->
+<div class="menu-btn" onclick="toggleSidebar()">☰</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <div class="user-row">
+      <span class="user-icon">👤</span>
+      <span id="sidebarUser">User</span>
+    </div>
+  </div>
+
+  <ul class="sidebar-menu">
+    <li onclick="goShop()">🛍 Shop</li>
+
+    <li class="has-sub">
+      📂 Categories
+      <ul id="sidebarCategories"></ul>
+    </li>
+
+    <li onclick="filterBestSeller()">⭐ Bestseller</li>
+
+    <li onclick="goCart()">🛒 Cart</li>
+    <li onclick="goWishlist()">❤️ Wishlist</li>
+
+    <li onclick="goMyOrders()">📦 My Orders</li>
+    <li onclick="goAddresses()">🏠 Saved Addresses</li>
+
+    <li class="divider"></li>
+
+    <li id="loginLogoutBtn" onclick="handleAuth()">🔐 Login</li>
+  </ul>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay" onclick="toggleSidebar()"></div>
+
+
+
 <header class="topbar">
   <h1 class="brand">Sellfix Designing</h1>
 
@@ -33,6 +72,7 @@
 <script type="module" src="js/store.js"></script>
 <script src="js/share.js"></script>
 <script src="js/customer-logout.js"></script>
+<script type="module" src="js/sidebar.js"></script>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
