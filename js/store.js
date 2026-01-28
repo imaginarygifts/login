@@ -2,19 +2,30 @@ import { db } from "./firebase.js";
 import { collection, getDocs } from
   "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* ================= DOM ================= */
 const grid = document.getElementById("productGrid");
 const categoryBar = document.getElementById("categoryBar");
 const tagRow = document.getElementById("tagFilterRow");
 
+/* ================= STATE ================= */
 let allProducts = [];
 let allCategories = [];
 let allTags = [];
 
 let activeCategory = "all";
 let activeTag = "all";
+let showBestSellerOnly = false; // ✅ FIX 1
+
+/* ================= BESTSELLER ================= */
+window.filterBestSeller = function () {
+  showBestSellerOnly = true;
+  activeCategory = "all";
+  activeTag = "all";
+  updateTagUI();
+  renderProducts();
+};
 
 /* ================= CATEGORIES ================= */
-
 async function loadCategories() {
   const snap = await getDocs(collection(db, "categories"));
   allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -38,7 +49,9 @@ function createCategoryBtn(label, id) {
 
   div.onclick = () => {
     activeCategory = id;
-    document.querySelectorAll(".category-pill").forEach(p => p.classList.remove("active"));
+    showBestSellerOnly = false; // ✅ FIX 2
+    document.querySelectorAll(".category-pill")
+      .forEach(p => p.classList.remove("active"));
     div.classList.add("active");
     renderProducts();
   };
@@ -47,22 +60,18 @@ function createCategoryBtn(label, id) {
 }
 
 /* ================= TAGS ================= */
-
 async function loadFrontendTags() {
   if (!tagRow) return;
 
   const snap = await getDocs(collection(db, "tags"));
   allTags = snap.docs.map(d => d.data());
-
   renderTags();
 }
 
 function renderTags() {
   tagRow.innerHTML = "";
 
-  // ALL tag
-  const allChip = createTagChip("All", "all");
-  tagRow.appendChild(allChip);
+  tagRow.appendChild(createTagChip("All", "all"));
 
   allTags.forEach(tag => {
     tagRow.appendChild(createTagChip(tag.name, tag.slug));
@@ -75,7 +84,7 @@ function createTagChip(label, slug) {
   chip.innerText = label;
 
   chip.onclick = () => {
-    // toggle
+    showBestSellerOnly = false; // ✅ FIX 3
     activeTag = activeTag === slug ? "all" : slug;
     updateTagUI();
     renderProducts();
@@ -99,7 +108,6 @@ function updateTagUI() {
 }
 
 /* ================= PRODUCTS ================= */
-
 async function loadProducts() {
   const snap = await getDocs(collection(db, "products"));
   allProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -117,7 +125,11 @@ function renderProducts() {
       activeTag === "all" ||
       (p.tags && p.tags.includes(activeTag));
 
-    return categoryMatch && tagMatch;
+    const bestsellerMatch =
+      !showBestSellerOnly ||
+      (p.tags && p.tags.includes("bestseller")); // ✅ FIX 4
+
+    return categoryMatch && tagMatch && bestsellerMatch;
   });
 
   if (!filtered.length) {
@@ -129,19 +141,19 @@ function renderProducts() {
     const card = document.createElement("div");
     card.className = "product-card";
 
-const isBestseller = p.tags && p.tags.includes("bestseller");
+    const isBestseller = p.tags && p.tags.includes("bestseller");
 
-card.innerHTML = `
-  <div class="img-wrap">
-    ${isBestseller ? `<span class="badge">🔥 Bestseller</span>` : ""}
-    <img src="${p.images?.[0] || ''}">
-  </div>
+    card.innerHTML = `
+      <div class="img-wrap">
+        ${isBestseller ? `<span class="badge">🔥 Bestseller</span>` : ""}
+        <img src="${p.images?.[0] || ''}">
+      </div>
 
-  <div class="info">
-    <h4>${p.name}</h4>
-    <p>₹${p.basePrice}</p>
-  </div>
-`;
+      <div class="info">
+        <h4>${p.name}</h4>
+        <p>₹${p.basePrice}</p>
+      </div>
+    `;
 
     card.onclick = () => {
       location.href = `product.html?id=${p.id}`;
@@ -152,7 +164,6 @@ card.innerHTML = `
 }
 
 /* ================= INIT ================= */
-
 loadCategories();
 loadFrontendTags();
 loadProducts();
