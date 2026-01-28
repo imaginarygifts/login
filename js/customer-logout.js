@@ -1,13 +1,24 @@
-window.customerLogout = function () {
-  if (!confirm("Are you sure you want to logout?")) return;
+const authBtn = document.getElementById("authBtn");
+const uid = localStorage.getItem("customerUid");
 
-  // 🔥 Clear customer session
-  localStorage.removeItem("customerUid");
-  localStorage.removeItem("customerPhone");
+if (uid) {
+  // Logged in → show Logout
+  authBtn.innerText = "Logout";
 
-  // Optional cleanup
-  localStorage.removeItem("redirectAfterLogin");
+  authBtn.onclick = () => {
+    localStorage.removeItem("customerUid");
+    localStorage.removeItem("customerPhone");
 
-  // Redirect to login
-  location.href = "login.html";
-};
+    // stay on same page
+    location.reload();
+  };
+} else {
+  // Not logged in → show Login
+  authBtn.innerText = "Login";
+
+  authBtn.onclick = () => {
+    // save current page
+    localStorage.setItem("redirectAfterLogin", location.href);
+    location.href = "login.html";
+  };
+}
