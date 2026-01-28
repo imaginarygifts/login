@@ -18,6 +18,32 @@ let showBestSellerOnly = false;
 
 
 
+window.goCart = function () {
+  location.href = "cart.html";
+};
+
+function updateCartCount() {
+  const uid = localStorage.getItem("customerUid");
+  if (!uid) {
+    document.getElementById("cartCount").innerText = "0";
+    return;
+  }
+
+  const cart =
+    JSON.parse(localStorage.getItem(`cart_${uid}`)) || { items: [] };
+
+  const count = cart.items.reduce((sum, i) => sum + (i.qty || 1), 0);
+  document.getElementById("cartCount").innerText = count;
+}
+
+/* 🔁 Auto update on page load */
+updateCartCount();
+
+/* 🔁 Listen for cart updates */
+window.addEventListener("storage", updateCartCount);
+
+
+
 window.addToCart = function () {
   const uid = localStorage.getItem("customerUid");
 
