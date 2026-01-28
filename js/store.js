@@ -16,35 +16,44 @@ let activeCategory = "all";
 let activeTag = "all";
 let showBestSellerOnly = false;
 
-
-
+/* ================= CART ================= */
 window.goCart = function () {
   location.href = "cart.html";
 };
 
+function getCart() {
+  const uid = localStorage.getItem("customerUid");
+  if (!uid) return { items: [] };
+  return JSON.parse(localStorage.getItem(`cart_${uid}`)) || { items: [] };
+}
+
+function saveCart(cart) {
+  const uid = localStorage.getItem("customerUid");
+  if (!uid) return;
+  localStorage.setItem(`cart_${uid}`, JSON.stringify(cart));
+  updateCartCount();
+}
+
 function updateCartCount() {
   const uid = localStorage.getItem("customerUid");
+  const el = document.getElementById("cartCount");
+  if (!el) return;
+
   if (!uid) {
-    document.getElementById("cartCount").innerText = "0";
+    el.innerText = "0";
     return;
   }
 
-  const cart =
-    JSON.parse(localStorage.getItem(`cart_${uid}`)) || { items: [] };
-
-  const count = cart.items.reduce((sum, i) => sum + (i.qty || 1), 0);
-  document.getElementById("cartCount").innerText = count;
+  const cart = getCart();
+  const count = cart.items.reduce((s, i) => s + i.qty, 0);
+  el.innerText = count;
 }
 
-/* 🔁 Auto update on page load */
 updateCartCount();
-
-/* 🔁 Listen for cart updates */
 window.addEventListener("storage", updateCartCount);
 
-
-
-window.addToCart = function () {
+/* ================= CART ACTIONS ================= */
+function addToCart(product) {
   const uid = localStorage.getItem("customerUid");
 
   if (!uid) {
@@ -53,38 +62,37 @@ window.addToCart = function () {
     return;
   }
 
-  const cartKey = `cart_${uid}`;
-  const cart = JSON.parse(localStorage.getItem(cartKey)) || { items: [] };
+  const cart = getCart();
+  let item = cart.items.find(i => i.productId === product.id);
 
-  const item = {
-    productId: product.id,
-    name: product.name,
-    image: product.images?.[0] || "",
-    basePrice: product.basePrice,
-    finalPrice,
+  if (item) {
+    item.qty += 1;
+  } else {
+    cart.items.push({
+      productId: product.id,
+      name: product.name,
+      price: product.basePrice,
+      image: product.images?.[0] || "",
+      qty: 1
+    });
+  }
 
-    variants: {
-      color: selected.color || null,
-      size: selected.size || null
-    },
+  saveCart(cart);
+}
 
-    options: Object.keys(selected.options || {}).map(i => ({
-      label: product.customOptions?.[i]?.label || "",
-      value: selected.optionValues?.[i] || ""
-    })),
+function updateQty(productId, delta) {
+  const cart = getCart();
+  const item = cart.items.find(i => i.productId === productId);
+  if (!item) return;
 
-    qty: 1
-  };
+  item.qty += delta;
 
-  cart.items.push(item);
-  localStorage.setItem(cartKey, JSON.stringify(cart));
+  if (item.qty <= 0) {
+    cart.items = cart.items.filter(i => i.productId !== productId);
+  }
 
-  alert("Added to cart 🛒");
-};
-
-
-
-
+  saveCart(cart);
+}
 
 /* ================= BESTSELLER ================= */
 window.filterBestSeller = function () {
@@ -104,7 +112,6 @@ async function loadCategories() {
 
 function renderCategoryBar() {
   categoryBar.innerHTML = "";
-
   categoryBar.appendChild(createCategoryBtn("All", "all"));
 
   allCategories.forEach(cat => {
@@ -116,14 +123,12 @@ function createCategoryBtn(label, id) {
   const div = document.createElement("div");
   div.className = "category-pill" + (activeCategory === id ? " active" : "");
   div.innerText = label;
-
-  div.dataset.id = id; // ✅ VERY IMPORTANT
+  div.dataset.id = id;
 
   div.onclick = () => {
+    showBestSellerOnly = false;
     activeCategory = id;
-    document
-      .querySelectorAll(".category-pill")
-      .forEach(p => p.classList.remove("active"));
+    document.querySelectorAll(".category-pill").forEach(p => p.classList.remove("active"));
     div.classList.add("active");
     renderProducts();
   };
@@ -142,7 +147,6 @@ async function loadFrontendTags() {
 
 function renderTags() {
   tagRow.innerHTML = "";
-
   tagRow.appendChild(createTagChip("All", "all"));
 
   allTags.forEach(tag => {
@@ -156,7 +160,7 @@ function createTagChip(label, slug) {
   chip.innerText = label;
 
   chip.onclick = () => {
-    showBestSellerOnly = false; // ✅ FIX 3
+    showBestSellerOnly = false;
     activeTag = activeTag === slug ? "all" : slug;
     updateTagUI();
     renderProducts();
@@ -170,10 +174,7 @@ function updateTagUI() {
     const tag = chip.innerText.toLowerCase();
     chip.classList.remove("active");
 
-    if (
-      (activeTag === "all" && tag === "all") ||
-      tag === activeTag
-    ) {
+    if ((activeTag === "all" && tag === "all") || tag === activeTag) {
       chip.classList.add("active");
     }
   });
@@ -194,12 +195,10 @@ function renderProducts() {
       activeCategory === "all" || p.categoryId === activeCategory;
 
     const tagMatch =
-      activeTag === "all" ||
-      (p.tags && p.tags.includes(activeTag));
+      activeTag === "all" || (p.tags && p.tags.includes(activeTag));
 
     const bestsellerMatch =
-      !showBestSellerOnly ||
-      (p.tags && p.tags.includes("bestseller")); // ✅ FIX 4
+      !showBestSellerOnly || (p.tags && p.tags.includes("bestseller"));
 
     return categoryMatch && tagMatch && bestsellerMatch;
   });
@@ -209,11 +208,14 @@ function renderProducts() {
     return;
   }
 
+  const cart = getCart();
+
   filtered.forEach(p => {
     const card = document.createElement("div");
     card.className = "product-card";
 
-    const isBestseller = p.tags && p.tags.includes("bestseller");
+    const isBestseller = p.tags?.includes("bestseller");
+    const cartItem = cart.items.find(i => i.productId === p.id);
 
     card.innerHTML = `
       <div class="img-wrap">
@@ -223,19 +225,56 @@ function renderProducts() {
 
       <div class="info">
         <h4>${p.name}</h4>
-        <p>₹${p.basePrice}</p>
-<button class="add-cart-btn" title="Add to cart">
-      🛒
-    </button>
+
+        <div class="price-row">
+          <span class="price">₹${p.basePrice}</span>
+
+          <div class="cart-controls">
+            <button class="cart-btn add ${cartItem ? "hidden" : ""}">🛒</button>
+
+            <div class="qty-box ${cartItem ? "" : "hidden"}">
+              <button class="qty-btn minus">−</button>
+              <span class="qty">${cartItem?.qty || 1}</span>
+              <button class="qty-btn plus">+</button>
+            </div>
+          </div>
+        </div>
       </div>
     `;
-const cartBtn = card.querySelector(".add-cart-btn");
 
-cartBtn.onclick = (e) => {
-  e.stopPropagation(); // ❌ stop product page open
-  addToCart(p);
-};
+    const addBtn = card.querySelector(".add");
+    const qtyBox = card.querySelector(".qty-box");
+    const qtyText = card.querySelector(".qty");
+    const plus = card.querySelector(".plus");
+    const minus = card.querySelector(".minus");
 
+    [addBtn, plus, minus].forEach(btn =>
+      btn?.addEventListener("click", e => e.stopPropagation())
+    );
+
+    addBtn.onclick = () => {
+      addToCart(p);
+      addBtn.classList.add("hidden");
+      qtyBox.classList.remove("hidden");
+      qtyText.innerText = 1;
+    };
+
+    plus.onclick = () => {
+      updateQty(p.id, 1);
+      qtyText.innerText = Number(qtyText.innerText) + 1;
+    };
+
+    minus.onclick = () => {
+      updateQty(p.id, -1);
+      const q = Number(qtyText.innerText) - 1;
+
+      if (q <= 0) {
+        qtyBox.classList.add("hidden");
+        addBtn.classList.remove("hidden");
+      } else {
+        qtyText.innerText = q;
+      }
+    };
 
     card.onclick = () => {
       location.href = `product.html?id=${p.id}`;
@@ -243,39 +282,6 @@ cartBtn.onclick = (e) => {
 
     grid.appendChild(card);
   });
-}
-
-
-
-
-function addToCart(product) {
-  const uid = localStorage.getItem("customerUid");
-
-  if (!uid) {
-    localStorage.setItem("redirectAfterLogin", location.href);
-    location.href = "login.html";
-    return;
-  }
-
-  const key = `cart_${uid}`;
-  const cart = JSON.parse(localStorage.getItem(key)) || { items: [] };
-
-  const existing = cart.items.find(i => i.productId === product.id);
-
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    cart.items.push({
-      productId: product.id,
-      name: product.name,
-      price: product.basePrice,
-      image: product.images?.[0] || "",
-      qty: 1
-    });
-  }
-
-  localStorage.setItem(key, JSON.stringify(cart));
-  updateCartCount();
 }
 
 /* ================= INIT ================= */
