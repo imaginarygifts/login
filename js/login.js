@@ -1,78 +1,88 @@
-import { auth } from "./firebase.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  signInWithPhoneNumber,
-  RecaptchaVerifier
+  getAuth,
+  RecaptchaVerifier,
+  signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* ================= GLOBAL ================= */
-window.confirmationResult = null;
+/* 🔥 YOUR FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+/* ================= STATE ================= */
+let confirmationResult = null;
+
+/* ================= DOM ================= */
+const phoneInput = document.getElementById("phone");
+const sendOtpBtn = document.getElementById("sendOtpBtn");
+const otpBox = document.getElementById("otpBox");
+const otpInput = document.getElementById("otp");
+const verifyOtpBtn = document.getElementById("verifyOtpBtn");
+
+/* ================= RECAPTCHA ================= */
+window.recaptchaVerifier = new RecaptchaVerifier(
+  auth,
+  "recaptcha-container",
+  {
+    size: "invisible"
+  }
+);
 
 /* ================= SEND OTP ================= */
-window.sendOTP = async function () {
-  const phone = document.getElementById("phone").value.trim();
+sendOtpBtn.addEventListener("click", async () => {
+  const phone = phoneInput.value.trim();
 
-  if (!phone || phone.length < 10) {
-    alert("Enter valid mobile number");
+  if (!phone.startsWith("+")) {
+    alert("Use country code. Example: +919876543210");
     return;
   }
 
-  // Save redirect page
-  localStorage.setItem("redirectAfterLogin", location.href);
-
   try {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        {
-          size: "invisible"
-        }
-      );
-    }
+    sendOtpBtn.disabled = true;
 
-    window.confirmationResult = await signInWithPhoneNumber(
+    confirmationResult = await signInWithPhoneNumber(
       auth,
-      "+91" + phone,
+      phone,
       window.recaptchaVerifier
     );
 
-    document.getElementById("otpBox").style.display = "block";
+    otpBox.style.display = "block";
     alert("OTP sent");
 
   } catch (err) {
     console.error(err);
     alert(err.message);
+    sendOtpBtn.disabled = false;
   }
-};
+});
 
 /* ================= VERIFY OTP ================= */
-window.verifyOTP = async function () {
-  const otp = document.getElementById("otp").value.trim();
+verifyOtpBtn.addEventListener("click", async () => {
+  const otp = otpInput.value.trim();
 
   if (!otp) {
     alert("Enter OTP");
     return;
   }
 
-  if (!window.confirmationResult) {
-    alert("Send OTP first");
-    return;
-  }
-
   try {
-    const result = await window.confirmationResult.confirm(otp);
+    const result = await confirmationResult.confirm(otp);
+    const user = result.user;
 
-    localStorage.setItem(
-      "customer",
-      JSON.stringify({
-        uid: result.user.uid,
-        phone: result.user.phoneNumber
-      })
-    );
+    /* SAVE LOGIN */
+    localStorage.setItem("customerUid", user.uid);
 
-    const redirect =
-      localStorage.getItem("redirectAfterLogin") || "index.html";
+    alert("Login successful");
 
+    /* REDIRECT */
+    const redirect = localStorage.getItem("redirectAfterLogin") || "index.html";
     localStorage.removeItem("redirectAfterLogin");
     location.href = redirect;
 
@@ -80,4 +90,4 @@ window.verifyOTP = async function () {
     console.error(err);
     alert("Invalid OTP");
   }
-};
+});
