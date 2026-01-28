@@ -10,9 +10,9 @@
 
 <header class="topbar">
   <h1>Sellfix Designing</h1>
-<button onclick="customerLogout()" class="logout-btn">
-  Logout
-</button>
+<div class="header-actions">
+  <button class="logout-btn" onclick="customerLogout()">Logout</button>
+</div>
 </header>
 <script>
   const uid = localStorage.getItem("customerUid");
