@@ -7,136 +7,205 @@
 
   <style>
     * {
-      box-sizing: border-box;
-    }
+      /* ===============================
+   DARK BRAND THEME (GLOBAL)
+================================ */
+:root {
+  --bg-main: #0b0d12;
+  --bg-card: #131722;
+  --bg-input: #1b2030;
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(135deg, #25d366, #128c7e);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
+  --brand-primary: #00ff9c;
+  --brand-secondary: #00c3ff;
 
-    .login-box {
-      background: #fff;
-      padding: 22px;
-      width: 100%;
-      max-width: 360px;
-      border-radius: 14px;
-      box-shadow: 0 15px 40px rgba(0,0,0,.25);
-      animation: slideUp .4s ease;
-    }
+  --text-main: #ffffff;
+  --text-muted: rgba(255,255,255,.6);
 
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
+  --border: rgba(255,255,255,.15);
+  --danger: #ef4444;
+}
 
-    h2 {
-      text-align: center;
-      margin-bottom: 18px;
-      font-size: 20px;
-    }
+/* ===============================
+   BASE
+================================ */
+* {
+  box-sizing: border-box;
+}
 
-    input, button {
-      width: 100%;
-      padding: 13px;
-      margin-bottom: 12px;
-      font-size: 15px;
-      border-radius: 8px;
-    }
+body {
+  margin: 0;
+  height: 100vh;
+  background: linear-gradient(135deg, #05070c, #0b0d12);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-main);
+}
 
-    input {
-      border: 1px solid #ddd;
-    }
+/* ===============================
+   LOGIN CARD
+================================ */
+.login-box {
+  width: 100%;
+  max-width: 360px;
+  background: var(--bg-card);
+  padding: 22px;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  animation: fadeIn .3s ease;
+}
 
-    button {
-      background: #25d366;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-    }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-    button:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-    }
+h2 {
+  text-align: center;
+  margin-bottom: 18px;
+  font-size: 20px;
+  font-weight: 700;
+}
 
-    small {
-      display: block;
-      text-align: center;
-      color: #777;
-      margin-top: 6px;
-    }
+/* ===============================
+   INPUTS
+================================ */
+input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-main);
+  font-size: 15px;
+}
 
-    /* OTP BOX */
-    #otpBox {
-      display: none;
-      margin-top: 10px;
-      animation: fadeIn .3s ease;
-    }
+input::placeholder {
+  color: var(--text-muted);
+}
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(0,255,156,.15);
+}
 
-    .resend-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      margin-top: 6px;
-    }
+/* ===============================
+   BUTTONS
+================================ */
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary),
+    var(--brand-secondary)
+  );
+  color: #000;
+  transition: transform .15s ease, opacity .15s ease;
+}
 
-    #resendOtpBtn {
-      background: none;
-      color: #25d366;
-      padding: 0;
-      font-size: 13px;
-    }
+button:hover {
+  opacity: .9;
+}
 
-    #resendTimer {
-      color: #888;
-    }
+button:active {
+  transform: scale(.97);
+}
 
-    /* LOADING POPUP */
-    #loadingPopup {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.45);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-    }
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
 
-    .loading-card {
-      background: #fff;
-      padding: 22px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 15px;
-      font-weight: 500;
-    }
+/* ===============================
+   OTP BOX
+================================ */
+#otpBox {
+  display: none;
+  margin-top: 12px;
+}
 
-    .loader {
-      width: 22px;
-      height: 22px;
-      border: 3px solid #ddd;
-      border-top: 3px solid #25d366;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
+/* ===============================
+   RESEND ROW
+================================ */
+.resend-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-top: 8px;
+}
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+#resendOtpBtn {
+  background: none;
+  border: none;
+  color: var(--brand-primary);
+  cursor: pointer;
+  padding: 0;
+}
+
+#resendOtpBtn:disabled {
+  opacity: .5;
+}
+
+#resendTimer {
+  color: var(--text-muted);
+}
+
+/* ===============================
+   LOADING POPUP
+================================ */
+#loadingPopup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.loading-card {
+  background: var(--bg-card);
+  padding: 18px 22px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 15px;
+}
+
+/* Loader */
+.loader {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(255,255,255,.2);
+  border-top: 3px solid var(--brand-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===============================
+   ERROR TEXT
+================================ */
+.error {
+  color: var(--danger);
+  font-size: 13px;
+  text-align: center;
+  margin-top: 8px;
+}
     }
   </style>
 </head>
