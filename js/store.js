@@ -44,6 +44,7 @@ function renderCategoryBar() {
 
 function createCategoryBtn(label, id) {
   const div = document.createElement("div");
+div.dataset.id = id;
   div.className = "category-pill" + (activeCategory === id ? " active" : "");
   div.innerText = label;
 
