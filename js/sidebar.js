@@ -2,30 +2,33 @@ import { db } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const sidebar = document.getElementById("sidebar");
-const overlay = document.getElementById("overlay");
+const overlay = document.getElementById("sidebarOverlay");
 const sidebarUser = document.getElementById("sidebarUser");
-const loginLogoutBtn = document.getElementById("loginLogoutBtn");
-const catBox = document.getElementById("sidebarCategories");
+const authBtn = document.getElementById("authBtn");
+const sidebarAuthBtn = document.getElementById("sidebarAuthBtn");
+const categoryList = document.getElementById("categoryList");
 
-/* ================= TOGGLE ================= */
-window.toggleSidebar = function () {
+/* ===== TOGGLE ===== */
+window.toggleSidebar = () => {
   sidebar.classList.toggle("open");
   overlay.classList.toggle("show");
 };
 
-/* ================= AUTH UI ================= */
+/* ===== AUTH UI ===== */
 const uid = localStorage.getItem("customerUid");
 const phone = localStorage.getItem("customerPhone");
 
 if (uid) {
-  sidebarUser.innerText = phone || "Customer";
-  loginLogoutBtn.innerText = "Logout";
+  sidebarUser.innerText = phone;
+  authBtn.innerText = "Logout";
+  sidebarAuthBtn.innerText = "Logout";
 } else {
   sidebarUser.innerText = "User";
-  loginLogoutBtn.innerText = "Login";
+  authBtn.innerText = "Login";
+  sidebarAuthBtn.innerText = "Login";
 }
 
-window.handleAuth = function () {
+window.handleAuth = () => {
   if (uid) {
     localStorage.clear();
     location.reload();
@@ -35,20 +38,15 @@ window.handleAuth = function () {
   }
 };
 
-/* ================= NAV ACTIONS ================= */
+/* ===== NAV ===== */
 window.goShop = () => location.href = "index.html";
 window.goCart = () => location.href = "cart.html";
 window.goWishlist = () => location.href = "wishlist.html";
 window.goMyOrders = () => location.href = "my-orders.html";
 window.goAddresses = () => location.href = "addresses.html";
 
-window.filterBestSeller = () => {
-  toggleSidebar();
-  document.querySelector('[data-tag="bestseller"]')?.click();
-};
-
-/* ================= LOAD CATEGORIES ================= */
-async function loadSidebarCategories() {
+/* ===== CATEGORIES ===== */
+async function loadCategories() {
   const snap = await getDocs(collection(db, "categories"));
   snap.forEach(doc => {
     const li = document.createElement("li");
@@ -57,8 +55,13 @@ async function loadSidebarCategories() {
       toggleSidebar();
       document.querySelector(`[data-category="${doc.id}"]`)?.click();
     };
-    catBox.appendChild(li);
+    categoryList.appendChild(li);
   });
 }
+loadCategories();
 
-loadSidebarCategories();
+/* ===== CATEGORY ACCORDION ===== */
+document.querySelector(".accordion").onclick = function (e) {
+  e.stopPropagation();
+  this.classList.toggle("open");
+};
