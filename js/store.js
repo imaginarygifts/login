@@ -44,14 +44,15 @@ function renderCategoryBar() {
 
 function createCategoryBtn(label, id) {
   const div = document.createElement("div");
-div.dataset.id = id;
   div.className = "category-pill" + (activeCategory === id ? " active" : "");
   div.innerText = label;
 
+  div.dataset.id = id; // ✅ VERY IMPORTANT
+
   div.onclick = () => {
     activeCategory = id;
-    showBestSellerOnly = false; // ✅ FIX 2
-    document.querySelectorAll(".category-pill")
+    document
+      .querySelectorAll(".category-pill")
       .forEach(p => p.classList.remove("active"));
     div.classList.add("active");
     renderProducts();
