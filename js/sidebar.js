@@ -123,6 +123,8 @@ async function loadCategories() {
   });
 }
 
+loadCategories();
+
 /* ================= CATEGORY ACCORDION ================= */
 const accordion = document.querySelector(".accordion");
 if (accordion) {
