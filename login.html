@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login | Imaginary Gifts</title>
+
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+
+<div class="login-wrapper">
+  <div class="login-card">
+
+    <h2>Welcome Back 👋</h2>
+    <p>Login to continue</p>
+
+    <!-- PHONE INPUT -->
+    <div id="phoneStep">
+      <input type="tel" id="phoneInput" placeholder="Enter Mobile Number" />
+      <div id="recaptcha-container"></div>
+      <button onclick="sendOTP()">Send OTP</button>
+    </div>
+
+    <!-- OTP INPUT -->
+    <div id="otpStep" style="display:none;">
+      <input type="text" id="otpInput" placeholder="Enter OTP" />
+      <button onclick="verifyOTP()">Verify & Login</button>
+    </div>
+
+  </div>
+</div>
+
+<script type="module" src="js/login.js"></script>
+</body>
+</html>
