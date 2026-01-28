@@ -30,17 +30,37 @@ const verifyOtpBtn = document.getElementById("verifyOtpBtn");
 window.recaptchaVerifier = new RecaptchaVerifier(
   auth,
   "recaptcha-container",
-  {
-    size: "invisible"
-  }
+  { size: "invisible" }
 );
+
+/* ================= HELPERS ================= */
+function normalizeIndianPhone(input) {
+  let phone = input.trim();
+
+  // remove spaces / dashes
+  phone = phone.replace(/[^0-9+]/g, "");
+
+  // if starts with 91 but no +
+  if (phone.length === 12 && phone.startsWith("91")) {
+    phone = "+" + phone;
+  }
+
+  // if only 10 digits → add +91
+  if (/^\d{10}$/.test(phone)) {
+    phone = "+91" + phone;
+  }
+
+  return phone;
+}
 
 /* ================= SEND OTP ================= */
 sendOtpBtn.addEventListener("click", async () => {
-  const phone = phoneInput.value.trim();
+  let phone = phoneInput.value;
 
-  if (!phone.startsWith("+")) {
-    alert("Use country code. Example: +919876543210");
+  phone = normalizeIndianPhone(phone);
+
+  if (!phone.startsWith("+91") || phone.length !== 13) {
+    alert("Enter valid 10 digit mobile number");
     return;
   }
 
@@ -78,12 +98,15 @@ verifyOtpBtn.addEventListener("click", async () => {
 
     /* SAVE LOGIN */
     localStorage.setItem("customerUid", user.uid);
+    localStorage.setItem("customerPhone", user.phoneNumber);
 
     alert("Login successful");
 
     /* REDIRECT */
-    const redirect = localStorage.getItem("redirectAfterLogin") || "index.html";
+    const redirect =
+      localStorage.getItem("redirectAfterLogin") || "index.html";
     localStorage.removeItem("redirectAfterLogin");
+
     location.href = redirect;
 
   } catch (err) {
