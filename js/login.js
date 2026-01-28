@@ -7,10 +7,10 @@ import {
 
 /* 🔥 YOUR FIREBASE CONFIG */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDaeaJy8haKhn3Ve5rUdrj7XItXPI-ujDU",
+  authDomain: "sellfix-designing.firebaseapp.com",
+  projectId: "sellfix-designing",
+  appId: "1:129826052151:web:ff6f1cb5fce219d65087b2"
 };
 
 const app = initializeApp(firebaseConfig);
