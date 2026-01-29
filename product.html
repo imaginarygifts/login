@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <title>Product</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- MAIN STORE STYLE -->
   <link rel="stylesheet" href="css/store.css">
 </head>
 <body>
 
+<!-- ================= TOP HEADER ================= -->
 <header class="topbar">
   <button class="hamburger" onclick="toggleSidebar()">☰</button>
 
@@ -16,7 +19,7 @@
   </h1>
 
   <div class="right">
-    <!-- CART -->
+    <!-- CART ICON -->
     <button class="cart-icon" onclick="goCart()">
       🛒
       <span id="cartCount" class="cart-count">0</span>
@@ -26,42 +29,64 @@
     <button class="auth-btn" id="authBtn"></button>
   </div>
 </header>
+
+<!-- ================= BACK BAR ================= -->
 <div class="top-bar custom-topbar">
-  <span class="back-btn" onclick="goBack()">←</span>
+  <span class="back-btn" onclick="goBack()">← Back</span>
 </div>
 
-<div class="product-page">
+<!-- ================= PRODUCT PAGE ================= -->
+<main class="product-page">
 
+  <!-- IMAGE SLIDER -->
   <div id="slider" class="slider"></div>
   <div id="sliderDots" class="slider-dots"></div>
 
+  <!-- PRODUCT DETAILS -->
   <div id="productDetails" class="product-details"></div>
 
-</div>
+</main>
 
+<!-- ================= BOTTOM ACTIONS ================= -->
 <div class="bottom-actions">
   <button class="buy-btn" onclick="buyNow()">Buy Now</button>
   <button class="order-btn" onclick="orderNow()">Order On WhatsApp</button>
 </div>
 
-</div>
-</div>
-
+<!-- ================= SHARE ================= -->
 <div id="shareBtn" onclick="sharePage()">🔗</div>
 
+<!-- ================= SIDEBAR ================= -->
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<aside id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <div id="sidebarUser">User</div>
+  </div>
+
+  <ul class="sidebar-menu">
+    <li onclick="location.href='index.html'">🛍 Shop</li>
+    <li onclick="goCart()">🛒 Cart</li>
+    <li onclick="location.href='wishlist.html'">❤️ Wishlist</li>
+    <li onclick="location.href='my-orders.html'">📦 My Orders</li>
+    <li onclick="location.href='addresses.html'">🏠 Saved Addresses</li>
+    <li id="sidebarAuthBtn" onclick="handleAuth()">Login</li>
+  </ul>
+</aside>
+
+<!-- ================= SCRIPTS ================= -->
+
+<!-- LOGIN GUARD -->
 <script src="js/customer-guard.js"></script>
 
-<!-- SIDEBAR -->
+<!-- SIDEBAR + AUTH -->
 <script type="module" src="js/sidebar.js"></script>
 
-<!-- CART COUNT + AUTH -->
+<!-- CART COUNT + AUTH BTN -->
 <script type="module" src="js/store.js"></script>
 
 <!-- PRODUCT PAGE LOGIC -->
 <script type="module" src="js/product.js"></script>
-  function goBack() {
-    location.href = "index.html";
-  }
-</script> 
+
 </body>
 </html>
