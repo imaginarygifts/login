@@ -566,3 +566,48 @@ li {
   background: rgba(255,255,255,0.2);
   border-radius: 10px;
 }
+
+.admin-card {
+  background: #111;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.toggle-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.toggle-option {
+  flex: 1;
+  background: #1c1c1c;
+  padding: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.toggle-option input {
+  display: none;
+}
+
+.toggle-option:has(input:checked) {
+  border-color: #00f5ff;
+  background: #0e0e0e;
+}
+
+.save-btn {
+  margin-top: 14px;
+  width: 100%;
+  padding: 12px;
+  background: #00f5ff;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+}
