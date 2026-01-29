@@ -10,6 +10,7 @@ const id = new URLSearchParams(window.location.search).get("id");
 let product = null;
 let finalPrice = 0;
 let relatedProducts = [];
+let productAction = "whatsapp"; // default
 
 let selected = {
   color: null,
@@ -19,6 +20,75 @@ let selected = {
   imageLinks: {}
 };
 
+
+function setupPrimaryButton() {
+  const btn = document.getElementById("primaryActionBtn");
+  if (!btn) return;
+
+  if (productAction === "cart") {
+    btn.innerText = "Add to Cart 🛒";
+    btn.classList.add("cart-btn");
+    btn.classList.remove("whatsapp-btn");
+  } else {
+    btn.innerText = "Order on WhatsApp";
+    btn.classList.add("whatsapp-btn");
+    btn.classList.remove("cart-btn");
+  }
+}
+
+window.handlePrimaryAction = function () {
+  if (productAction === "cart") {
+    addToCartFromProduct();
+  } else {
+    orderNow(); // existing WhatsApp logic
+  }
+};
+
+function addToCartFromProduct() {
+  const uid = localStorage.getItem("customerUid");
+
+  if (!uid) {
+    localStorage.setItem("redirectAfterLogin", location.href);
+    location.href = "login.html";
+    return;
+  }
+
+  const key = `cart_${uid}`;
+  const cart = JSON.parse(localStorage.getItem(key)) || { items: [] };
+
+  const existing = cart.items.find(
+    i =>
+      i.productId === product.id &&
+      JSON.stringify(i.variants) ===
+        JSON.stringify({
+          color: selected.color || null,
+          size: selected.size || null
+        })
+  );
+
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.items.push({
+      productId: product.id,
+      name: product.name,
+      image: product.images?.[0] || "",
+      price: finalPrice,
+      qty: 1,
+      variants: {
+        color: selected.color || null,
+        size: selected.size || null
+      },
+      options: Object.keys(selected.options || {}).map(i => ({
+        label: product.customOptions?.[i]?.label || "",
+        value: selected.optionValues?.[i] || ""
+      }))
+    });
+  }
+
+  localStorage.setItem(key, JSON.stringify(cart));
+  alert("Added to cart 🛒");
+}
 
 
 window.addToCart = function () {
@@ -70,6 +140,8 @@ async function loadProduct() {
   if (!snap.exists()) return;
 
   product = snap.data();
+productAction = product.actionButton || "whatsapp";
+setupPrimaryButton();
   finalPrice = product.basePrice;
 
   renderSlider(product.images);
