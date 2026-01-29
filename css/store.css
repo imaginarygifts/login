@@ -546,3 +546,23 @@ body {
 .hidden {
   display: none;
 }
+
+
+
+.primary-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  border-radius: 14px;
+  color: #000;
+  font-weight: bold;
+}
+
+.cart-btn {
+  background: linear-gradient(135deg, #ffb347, #ffcc33);
+}
+
+.whatsapp-btn {
+  background: linear-gradient(135deg, #25d366, #00ff9c);
+}
