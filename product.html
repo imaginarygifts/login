@@ -11,6 +11,25 @@
   <span class="back-btn" onclick="goBack()">←</span>
 </div>
 
+<header class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+
+  <h1 class="brand" onclick="location.href='index.html'">
+    Sellfix Designing
+  </h1>
+
+  <div class="right">
+    <!-- CART -->
+    <button class="cart-icon" onclick="goCart()">
+      🛒
+      <span id="cartCount" class="cart-count">0</span>
+    </button>
+
+    <!-- LOGIN / LOGOUT -->
+    <button class="auth-btn" id="authBtn"></button>
+  </div>
+</header>
+
 <div class="product-page">
 
   <div id="slider" class="slider"></div>
@@ -32,9 +51,14 @@
 
 <script src="js/customer-guard.js"></script>
 
+<!-- SIDEBAR -->
+<script type="module" src="js/sidebar.js"></script>
+
+<!-- CART COUNT + AUTH -->
+<script type="module" src="js/store.js"></script>
+
+<!-- PRODUCT PAGE LOGIC -->
 <script type="module" src="js/product.js"></script>
-<script src="js/share.js"></script>
-<script>
   function goBack() {
     location.href = "index.html";
   }
