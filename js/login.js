@@ -28,8 +28,8 @@ const db = getFirestore(app);
 
 /* ================= STATE ================= */
 let confirmationResult = null;
-let resendInterval = null;
-let secondsLeft = 60;
+let resendTimer = null;
+let seconds = 60;
 
 /* ================= DOM ================= */
 const phoneInput = document.getElementById("phone");
@@ -41,30 +41,31 @@ const resendBtn = document.getElementById("resendOtpBtn");
 const resendText = document.getElementById("resendTimer");
 
 /* ================= HELPERS ================= */
-function normalizePhone(num) {
-  const n = num.replace(/\D/g, "");
-  if (n.length !== 10) return null;
-  return "+91" + n;
+function normalizePhone(v) {
+  const n = v.replace(/\D/g, "");
+  return n.length === 10 ? "+91" + n : null;
 }
 
-/* ================= RECAPTCHA (ONLY ONCE) ================= */
-window.recaptchaVerifier = new RecaptchaVerifier(
-  auth,
-  "recaptcha-container",
-  { size: "invisible" }
-);
+/* ================= RECAPTCHA (SAFE INIT) ================= */
+if (!window.recaptchaVerifier) {
+  window.recaptchaVerifier = new RecaptchaVerifier(
+    auth,
+    "recaptcha-container",
+    { size: "invisible" }
+  );
+}
 
 /* ================= TIMER ================= */
 function startTimer() {
-  secondsLeft = 60;
+  seconds = 60;
   resendBtn.disabled = true;
 
-  resendInterval = setInterval(() => {
-    secondsLeft--;
-    resendText.innerText = `Resend OTP in ${secondsLeft}s`;
+  resendTimer = setInterval(() => {
+    seconds--;
+    resendText.innerText = `Resend OTP in ${seconds}s`;
 
-    if (secondsLeft <= 0) {
-      clearInterval(resendInterval);
+    if (seconds <= 0) {
+      clearInterval(resendTimer);
       resendText.innerText = "";
       resendBtn.disabled = false;
     }
@@ -75,7 +76,7 @@ function startTimer() {
 async function sendOtp() {
   const phone = normalizePhone(phoneInput.value);
   if (!phone) {
-    alert("Enter valid 10 digit number");
+    alert("Enter valid 10 digit mobile number");
     return;
   }
 
@@ -92,10 +93,10 @@ async function sendOtp() {
 
   } catch (err) {
     console.error(err);
-    alert("OTP send failed");
+    alert("Failed to send OTP");
     sendOtpBtn.disabled = false;
     otpBox.style.display = "none";
-    clearInterval(resendInterval);
+    clearInterval(resendTimer);
   }
 }
 
@@ -106,7 +107,7 @@ resendBtn.onclick = sendOtp;
 verifyOtpBtn.onclick = async () => {
   const otp = otpInput.value.trim();
 
-  if (!otp || otp.length !== 6) {
+  if (otp.length !== 6) {
     alert("Enter 6 digit OTP");
     return;
   }
@@ -145,7 +146,7 @@ verifyOtpBtn.onclick = async () => {
 
   } catch (err) {
     console.error(err);
-    alert("Invalid OTP. Please resend.");
+    alert("Invalid or expired OTP");
     verifyOtpBtn.disabled = false;
   }
 };
