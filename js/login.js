@@ -1,20 +1,28 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-getAuth,
-RecaptchaVerifier,
-signInWithPhoneNumber
+  getAuth,
+  RecaptchaVerifier,
+  signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* 🔥 FIREBASE CONFIG */
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* ================= FIREBASE CONFIG ================= */
 const firebaseConfig = {
-apiKey: "AIzaSyDaeaJy8haKhn3Ve5rUdrj7XItXPI-ujDU",
-authDomain: "sellfix-designing.firebaseapp.com",
-projectId: "sellfix-designing",
-appId: "1:129826052151:web:ff6f1cb5fce219d65087b2"
+  apiKey: "AIzaSyDaeaJy8haKhn3Ve5rUdrj7XItXPI-ujDU",
+  authDomain: "sellfix-designing.firebaseapp.com",
+  projectId: "sellfix-designing",
+  appId: "1:129826052151:web:ff6f1cb5fce219d65087b2"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 /* ================= STATE ================= */
 let confirmationResult = null;
@@ -31,75 +39,88 @@ const resendBtn = document.getElementById("resendOtpBtn");
 const resendText = document.getElementById("resendTimer");
 const loadingPopup = document.getElementById("loadingPopup");
 
-/* ================= RECAPTCHA ================= */
-window.recaptchaVerifier = new RecaptchaVerifier(
-auth,
-"recaptcha-container",
-{ size: "invisible" }
-);
-
 /* ================= HELPERS ================= */
 function normalizeIndianPhone(input) {
-let phone = input.trim().replace(/\D/g, "");
-
-if (!/^\d{10}$/.test(phone)) return null;
-return "+91" + phone;
+  const phone = input.replace(/\D/g, "");
+  if (!/^\d{10}$/.test(phone)) return null;
+  return "+91" + phone;
 }
 
 function showLoading(text) {
-loadingPopup.querySelector("span").innerText = text;
-loadingPopup.style.display = "flex";
+  if (!loadingPopup) return;
+  loadingPopup.querySelector("span").innerText = text;
+  loadingPopup.style.display = "flex";
 }
 
 function hideLoading() {
-loadingPopup.style.display = "none";
+  if (!loadingPopup) return;
+  loadingPopup.style.display = "none";
 }
 
+/* ================= RECAPTCHA ================= */
+function initRecaptcha() {
+  if (window.recaptchaVerifier) {
+    window.recaptchaVerifier.clear();
+  }
+
+  window.recaptchaVerifier = new RecaptchaVerifier(
+    auth,
+    "recaptcha-container",
+    {
+      size: "invisible",
+      callback: () => {}
+    }
+  );
+}
+
+/* ================= RESEND TIMER ================= */
 function startResendTimer() {
-resendSeconds = 60;
-resendBtn.disabled = true;
-resendText.innerText = Resend OTP in ${resendSeconds}s;
+  resendSeconds = 60;
+  resendBtn.disabled = true;
+  resendText.innerText = `Resend OTP in ${resendSeconds}s`;
 
-resendTimer = setInterval(() => {
-resendSeconds--;
-resendText.innerText = Resend OTP in ${resendSeconds}s;
+  resendTimer = setInterval(() => {
+    resendSeconds--;
+    resendText.innerText = `Resend OTP in ${resendSeconds}s`;
 
-if (resendSeconds <= 0) {  
-  clearInterval(resendTimer);  
-  resendText.innerText = "";  
-  resendBtn.disabled = false;  
-}
-
-}, 1000);
+    if (resendSeconds <= 0) {
+      clearInterval(resendTimer);
+      resendText.innerText = "";
+      resendBtn.disabled = false;
+    }
+  }, 1000);
 }
 
 /* ================= SEND OTP ================= */
 async function sendOtp() {
-let phone = normalizeIndianPhone(phoneInput.value);
+  const phone = normalizeIndianPhone(phoneInput.value);
 
-if (!phone) {
-alert("Enter valid 10 digit mobile number");
-return;
-}
+  if (!phone) {
+    alert("Enter valid 10 digit mobile number");
+    return;
+  }
 
-try {
-sendOtpBtn.disabled = true;
-otpBox.style.display = "block";
-startResendTimer();
+  try {
+    initRecaptcha();
 
-confirmationResult = await signInWithPhoneNumber(  
-  auth,  
-  phone,  
-  window.recaptchaVerifier  
-);
+    sendOtpBtn.disabled = true;
+    otpBox.style.display = "block";
+    startResendTimer();
 
-} catch (err) {
-console.error(err);
-alert(err.message);
-sendOtpBtn.disabled = false;
-otpBox.style.display = "none";
-clearInterval(resendTimer);
-}
+    confirmationResult = await signInWithPhoneNumber(
+      auth,
+      phone,
+      window.recaptchaVerifier
+    );
+
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "Failed to send OTP");
+
+    sendOtpBtn.disabled = false;
+    otpBox.style.display = "none";
+    clearInterval(resendTimer);
+  }
 }
 
 sendOtpBtn.addEventListener("click", sendOtp);
@@ -107,35 +128,51 @@ resendBtn.addEventListener("click", sendOtp);
 
 /* ================= VERIFY OTP ================= */
 verifyOtpBtn.addEventListener("click", async () => {
-const otp = otpInput.value.trim();
+  const otp = otpInput.value.trim();
 
-if (!otp) {
-alert("Enter OTP");
-return;
-}
+  if (!otp || otp.length !== 6) {
+    alert("Enter valid 6 digit OTP");
+    return;
+  }
 
-try {
-showLoading("Verifying OTP...");
-verifyOtpBtn.disabled = true;
+  if (!confirmationResult) {
+    alert("Please resend OTP");
+    return;
+  }
 
-const result = await confirmationResult.confirm(otp);  
-const user = result.user;  
+  try {
+    showLoading("Verifying OTP...");
+    verifyOtpBtn.disabled = true;
 
-/* SAVE LOGIN */  
-localStorage.setItem("customerUid", user.uid);  
-localStorage.setItem("customerPhone", user.phoneNumber);  
+    const result = await confirmationResult.confirm(otp);
+    const user = result.user;
 
-/* REDIRECT */  
-const redirect =  
-  localStorage.getItem("redirectAfterLogin") || "index.html";  
-localStorage.removeItem("redirectAfterLogin");  
+    /* SAVE CUSTOMER TO FIRESTORE */
+    await setDoc(
+      doc(db, "customers", user.phoneNumber),
+      {
+        uid: user.uid,
+        phone: user.phoneNumber,
+        lastLoginAt: serverTimestamp()
+      },
+      { merge: true }
+    );
 
-location.href = redirect;
+    /* SAVE SESSION */
+    localStorage.setItem("customerUid", user.uid);
+    localStorage.setItem("customerPhone", user.phoneNumber);
 
-} catch (err) {
-console.error(err);
-alert("Invalid OTP");
-verifyOtpBtn.disabled = false;
-hideLoading();
-}
+    /* REDIRECT */
+    const redirect =
+      localStorage.getItem("redirectAfterLogin") || "index.html";
+    localStorage.removeItem("redirectAfterLogin");
+
+    location.href = redirect;
+
+  } catch (err) {
+    console.error(err);
+    alert("Invalid or expired OTP. Please resend.");
+    verifyOtpBtn.disabled = false;
+    hideLoading();
+  }
 });
