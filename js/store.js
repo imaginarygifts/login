@@ -230,7 +230,7 @@ function renderProducts() {
           <span class="price">₹${p.basePrice}</span>
 
           <div class="cart-controls">
-            <button class="cart-btn add ${cartItem ? "hidden" : ""}">🛒</button>
+            <button class="cart-btn add ${cartItem ? "hidden" : ""}">Add To Cart</button>
 
             <div class="qty-box ${cartItem ? "" : "hidden"}">
               <button class="qty-btn minus">−</button>
