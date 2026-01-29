@@ -88,5 +88,59 @@
 <!-- PRODUCT PAGE LOGIC -->
 <script type="module" src="js/product.js"></script>
 
+<script>
+  /* ================= BACK ================= */
+  function goBack() {
+    if (history.length > 1) {
+      history.back();
+    } else {
+      location.href = "index.html";
+    }
+  }
+
+  /* ================= AUTH BUTTON ================= */
+  function initAuthButton() {
+    const uid = localStorage.getItem("customerUid");
+    const authBtn = document.getElementById("authBtn");
+
+    if (!authBtn) return;
+
+    if (uid) {
+      authBtn.innerText = "Logout";
+      authBtn.onclick = () => {
+        localStorage.clear();
+        location.reload();
+      };
+    } else {
+      authBtn.innerText = "Login";
+      authBtn.onclick = () => {
+        localStorage.setItem("redirectAfterLogin", location.href);
+        location.href = "login.html";
+      };
+    }
+  }
+
+  /* ================= CART COUNT ================= */
+  function updateCartCountSafe() {
+    const el = document.getElementById("cartCount");
+    if (!el) return;
+
+    const uid = localStorage.getItem("customerUid");
+    if (!uid) {
+      el.innerText = "0";
+      return;
+    }
+
+    const cart = JSON.parse(localStorage.getItem(`cart_${uid}`)) || { items: [] };
+    const count = cart.items.reduce((s, i) => s + (i.qty || 1), 0);
+    el.innerText = count;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initAuthButton();
+    updateCartCountSafe();
+  });
+</script>
+
 </body>
 </html>
