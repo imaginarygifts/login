@@ -156,4 +156,4 @@ verifyOtpBtn.addEventListener("click", async () => {
     verifyOtpBtn.disabled = false;
     hideLoading();
   }
-});
+}); 
