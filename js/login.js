@@ -5,6 +5,13 @@ RecaptchaVerifier,
 signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+import {
+getFirestore,
+doc,
+setDoc,
+serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 /* 🔥 FIREBASE CONFIG */
 const firebaseConfig = {
 apiKey: "AIzaSyDaeaJy8haKhn3Ve5rUdrj7XItXPI-ujDU",
@@ -15,6 +22,7 @@ appId: "1:129826052151:web:ff6f1cb5fce219d65087b2"
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 /* ================= STATE ================= */
 let confirmationResult = null;
@@ -41,7 +49,6 @@ auth,
 /* ================= HELPERS ================= */
 function normalizeIndianPhone(input) {
 let phone = input.trim().replace(/\D/g, "");
-
 if (!/^\d{10}$/.test(phone)) return null;
 return "+91" + phone;
 }
@@ -121,7 +128,19 @@ verifyOtpBtn.disabled = true;
 const result = await confirmationResult.confirm(otp);  
 const user = result.user;  
 
-/* SAVE LOGIN */  
+/* ✅ SAVE CUSTOMER LOGIN TO FIRESTORE */  
+await setDoc(  
+  doc(db, "customers", user.phoneNumber),  
+  {  
+    phone: user.phoneNumber,     // login ID  
+    uid: user.uid,  
+    firstLoginAt: serverTimestamp(),  
+    lastLoginAt: serverTimestamp()  
+  },  
+  { merge: true }  
+);  
+
+/* SAVE LOCAL SESSION */  
 localStorage.setItem("customerUid", user.uid);  
 localStorage.setItem("customerPhone", user.phoneNumber);  
 
