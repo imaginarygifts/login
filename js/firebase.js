@@ -4,12 +4,12 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDaeaJy8haKhn3Ve5rUdrj7XItXPI-ujDU",
-  authDomain: "sellfix-designing.firebaseapp.com",
-  projectId: "sellfix-designing",
-  storageBucket: "sellfix-designing.firebasestorage.app",
-  messagingSenderId: "129826052151",
-  appId: "1:129826052151:web:ff6f1cb5fce219d65087b2"
+  apiKey: "AIzaSyAoEKRVuQKkbO5simGLszp-Y8mCTRAbFfQ",
+  authDomain: "sellfix-web.firebaseapp.com",
+  projectId: "sellfix-web",
+  storageBucket: "sellfix-web.firebasestorage.app",
+  messagingSenderId: "381995495462",
+  appId: "1:381995495462:web:39c4d5cfcbdfeaa9c2b6e7"
 };
 
 export const app = initializeApp(firebaseConfig);
