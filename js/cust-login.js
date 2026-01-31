@@ -1,28 +1,31 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-getAuth,
-RecaptchaVerifier,
-signInWithPhoneNumber
+  getAuth,
+  RecaptchaVerifier,
+  signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
-getFirestore,
-doc,
-setDoc,
-serverTimestamp
+  getFirestore,
+  doc,
+  setDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* 🔥 FIREBASE CONFIG */
 const firebaseConfig = {
-apiKey: "AIzaSyDaeaJy8haKhn3Ve5rUdrj7XItXPI-ujDU",
-authDomain: "sellfix-designing.firebaseapp.com",
-projectId: "sellfix-designing",
-appId: "1:129826052151:web:ff6f1cb5fce219d65087b2"
+  apiKey: "AIzaSyDaeaJy8haKhn3Ve5rUdrj7XItXPI-ujDU",
+  authDomain: "sellfix-designing.firebaseapp.com",
+  projectId: "sellfix-designing",
+  appId: "1:129826052151:web:ff6f1cb5fce219d65087b2"
 };
 
+/* ================= INIT ================= */
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+console.log("✅ Customer login JS loaded");
 
 /* ================= STATE ================= */
 let confirmationResult = null;
@@ -41,72 +44,78 @@ const loadingPopup = document.getElementById("loadingPopup");
 
 /* ================= RECAPTCHA ================= */
 window.recaptchaVerifier = new RecaptchaVerifier(
-auth,
-"recaptcha-container",
-{ size: "invisible" }
+  auth,
+  "recaptcha-container",
+  { size: "invisible" }
 );
+
+await window.recaptchaVerifier.render();
+console.log("✅ Recaptcha ready");
 
 /* ================= HELPERS ================= */
 function normalizeIndianPhone(input) {
-let phone = input.trim().replace(/\D/g, "");
-if (!/^\d{10}$/.test(phone)) return null;
-return "+91" + phone;
+  const phone = input.trim().replace(/\D/g, "");
+  if (!/^\d{10}$/.test(phone)) return null;
+  return "+91" + phone;
 }
 
 function showLoading(text) {
-loadingPopup.querySelector("span").innerText = text;
-loadingPopup.style.display = "flex";
+  loadingPopup.querySelector("span").innerText = text;
+  loadingPopup.style.display = "flex";
 }
 
 function hideLoading() {
-loadingPopup.style.display = "none";
+  loadingPopup.style.display = "none";
 }
 
 function startResendTimer() {
-resendSeconds = 60;
-resendBtn.disabled = true;
-resendText.innerText = Resend OTP in ${resendSeconds}s;
+  resendSeconds = 60;
+  resendBtn.disabled = true;
+  resendText.innerText = `Resend OTP in ${resendSeconds}s`;
 
-resendTimer = setInterval(() => {
-resendSeconds--;
-resendText.innerText = Resend OTP in ${resendSeconds}s;
+  resendTimer = setInterval(() => {
+    resendSeconds--;
+    resendText.innerText = `Resend OTP in ${resendSeconds}s`;
 
-if (resendSeconds <= 0) {  
-  clearInterval(resendTimer);  
-  resendText.innerText = "";  
-  resendBtn.disabled = false;  
-}
-
-}, 1000);
+    if (resendSeconds <= 0) {
+      clearInterval(resendTimer);
+      resendText.innerText = "";
+      resendBtn.disabled = false;
+    }
+  }, 1000);
 }
 
 /* ================= SEND OTP ================= */
 async function sendOtp() {
-let phone = normalizeIndianPhone(phoneInput.value);
+  const phone = normalizeIndianPhone(phoneInput.value);
 
-if (!phone) {
-alert("Enter valid 10 digit mobile number");
-return;
-}
+  if (!phone) {
+    alert("Enter valid 10 digit mobile number");
+    return;
+  }
 
-try {
-sendOtpBtn.disabled = true;
-otpBox.style.display = "block";
-startResendTimer();
+  try {
+    console.log("📨 Sending OTP to", phone);
 
-confirmationResult = await signInWithPhoneNumber(  
-  auth,  
-  phone,  
-  window.recaptchaVerifier  
-);
+    sendOtpBtn.disabled = true;
+    otpBox.style.display = "block";
+    startResendTimer();
 
-} catch (err) {
-console.error(err);
-alert(err.message);
-sendOtpBtn.disabled = false;
-otpBox.style.display = "none";
-clearInterval(resendTimer);
-}
+    confirmationResult = await signInWithPhoneNumber(
+      auth,
+      phone,
+      window.recaptchaVerifier
+    );
+
+    console.log("✅ OTP sent");
+
+  } catch (err) {
+    console.error("❌ OTP send error:", err);
+    alert(err.message);
+    sendOtpBtn.disabled = false;
+    otpBox.style.display = "none";
+    clearInterval(resendTimer);
+  }
 }
 
 sendOtpBtn.addEventListener("click", sendOtp);
@@ -114,47 +123,49 @@ resendBtn.addEventListener("click", sendOtp);
 
 /* ================= VERIFY OTP ================= */
 verifyOtpBtn.addEventListener("click", async () => {
-const otp = otpInput.value.trim();
+  const otp = otpInput.value.trim();
 
-if (!otp) {
-alert("Enter OTP");
-return;
-}
+  if (!otp) {
+    alert("Enter OTP");
+    return;
+  }
 
-try {
-showLoading("Verifying OTP...");
-verifyOtpBtn.disabled = true;
+  try {
+    showLoading("Verifying OTP...");
+    verifyOtpBtn.disabled = true;
 
-const result = await confirmationResult.confirm(otp);  
-const user = result.user;  
+    const result = await confirmationResult.confirm(otp);
+    const user = result.user;
 
-/* ✅ SAVE CUSTOMER LOGIN TO FIRESTORE */  
-await setDoc(  
-  doc(db, "customers", user.phoneNumber),  
-  {  
-    phone: user.phoneNumber,     // login ID  
-    uid: user.uid,  
-    firstLoginAt: serverTimestamp(),  
-    lastLoginAt: serverTimestamp()  
-  },  
-  { merge: true }  
-);  
+    console.log("✅ OTP verified", user.phoneNumber);
 
-/* SAVE LOCAL SESSION */  
-localStorage.setItem("customerUid", user.uid);  
-localStorage.setItem("customerPhone", user.phoneNumber);  
+    /* SAVE CUSTOMER TO FIRESTORE */
+    await setDoc(
+      doc(db, "customers", user.phoneNumber),
+      {
+        phone: user.phoneNumber,
+        uid: user.uid,
+        firstLoginAt: serverTimestamp(),
+        lastLoginAt: serverTimestamp()
+      },
+      { merge: true }
+    );
 
-/* REDIRECT */  
-const redirect =  
-  localStorage.getItem("redirectAfterLogin") || "index.html";  
-localStorage.removeItem("redirectAfterLogin");  
+    /* SAVE SESSION */
+    localStorage.setItem("customerUid", user.uid);
+    localStorage.setItem("customerPhone", user.phoneNumber);
 
-location.href = redirect;
+    /* REDIRECT */
+    const redirect =
+      localStorage.getItem("redirectAfterLogin") || "index.html";
+    localStorage.removeItem("redirectAfterLogin");
 
-} catch (err) {
-console.error(err);
-alert("Invalid OTP");
-verifyOtpBtn.disabled = false;
-hideLoading();
-}
+    location.href = redirect;
+
+  } catch (err) {
+    console.error("❌ OTP verify failed:", err);
+    alert("Invalid or expired OTP");
+    verifyOtpBtn.disabled = false;
+    hideLoading();
+  }
 });
