@@ -15,7 +15,7 @@ import {
 /* 🔥 FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyAoEKRVuQKkbO5simGLszp-Y8mCTRAbFfQ",
-authDomain: "sellfix-web.firebaseapp.com",
+  authDomain: "sellfix-web.firebaseapp.com",
   projectId: "sellfix-web",
   appId: "1:381995495462:web:39c4d5cfcbdfeaa9c2b6e7"
 };
@@ -40,15 +40,23 @@ const resendText = document.getElementById("resendTimer");
 const loadingPopup = document.getElementById("loadingPopup");
 
 /* ================= RECAPTCHA ================= */
-window.recaptchaVerifier = new RecaptchaVerifier(
-  auth,
-  "recaptcha-container",
-  { size: "invisible" }
-);
+function initRecaptcha() {
+  if (window.recaptchaVerifier) {
+    window.recaptchaVerifier.clear();
+  }
+
+  window.recaptchaVerifier = new RecaptchaVerifier(
+    auth,
+    "recaptcha-container",
+    { size: "invisible" }
+  );
+}
+
+initRecaptcha();
 
 /* ================= HELPERS ================= */
 function normalizeIndianPhone(input) {
-  let phone = input.trim().replace(/\D/g, "");
+  const phone = input.replace(/\D/g, "");
   if (!/^\d{10}$/.test(phone)) return null;
   return "+91" + phone;
 }
@@ -81,7 +89,7 @@ function startResendTimer() {
 
 /* ================= SEND OTP ================= */
 async function sendOtp() {
-  let phone = normalizeIndianPhone(phoneInput.value);
+  const phone = normalizeIndianPhone(phoneInput.value);
 
   if (!phone) {
     alert("Enter valid 10 digit mobile number");
@@ -90,8 +98,7 @@ async function sendOtp() {
 
   try {
     sendOtpBtn.disabled = true;
-    otpBox.style.display = "block";
-    startResendTimer();
+    initRecaptcha();
 
     confirmationResult = await signInWithPhoneNumber(
       auth,
@@ -99,12 +106,13 @@ async function sendOtp() {
       window.recaptchaVerifier
     );
 
+    otpBox.style.display = "block";
+    startResendTimer();
+
   } catch (err) {
-    console.error(err);
-    alert(err.message);
+    console.error("SEND OTP ERROR:", err);
+    alert(err.message || "OTP failed");
     sendOtpBtn.disabled = false;
-    otpBox.style.display = "none";
-    clearInterval(resendTimer);
   }
 }
 
@@ -115,8 +123,8 @@ resendBtn.addEventListener("click", sendOtp);
 verifyOtpBtn.addEventListener("click", async () => {
   const otp = otpInput.value.trim();
 
-  if (!otp) {
-    alert("Enter OTP");
+  if (!otp || !confirmationResult) {
+    alert("OTP session expired. Please resend OTP.");
     return;
   }
 
@@ -127,23 +135,21 @@ verifyOtpBtn.addEventListener("click", async () => {
     const result = await confirmationResult.confirm(otp);
     const user = result.user;
 
-    /* ✅ SAVE CUSTOMER LOGIN TO FIRESTORE */
+    /* ✅ SAVE CUSTOMER LOGIN */
     await setDoc(
-      doc(db, "customers", user.phoneNumber),
+      doc(db, "customers", user.uid),
       {
-        phone: user.phoneNumber,     // login ID
         uid: user.uid,
+        phone: user.phoneNumber,
         firstLoginAt: serverTimestamp(),
         lastLoginAt: serverTimestamp()
       },
       { merge: true }
     );
 
-    /* SAVE LOCAL SESSION */
     localStorage.setItem("customerUid", user.uid);
     localStorage.setItem("customerPhone", user.phoneNumber);
 
-    /* REDIRECT */
     const redirect =
       localStorage.getItem("redirectAfterLogin") || "index.html";
     localStorage.removeItem("redirectAfterLogin");
@@ -151,8 +157,8 @@ verifyOtpBtn.addEventListener("click", async () => {
     location.href = redirect;
 
   } catch (err) {
-    console.error(err);
-    alert("Invalid OTP");
+    console.error("VERIFY OTP ERROR:", err);
+    alert("Invalid or expired OTP");
     verifyOtpBtn.disabled = false;
     hideLoading();
   }
