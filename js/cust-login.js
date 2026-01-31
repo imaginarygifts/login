@@ -24,7 +24,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-console.log("✅ Customer login JS loaded");
+
 
 /* ================= STATE ================= */
 let confirmationResult = null;
