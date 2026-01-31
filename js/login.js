@@ -13,13 +13,17 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* 🔥 FIREBASE CONFIG */
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyDaeaJy8haKhn3Ve5rUdrj7XItXPI-ujDU",
-  authDomain: "sellfix-designing.firebaseapp.com",
-  projectId: "sellfix-designing",
-  appId: "1:129826052151:web:ff6f1cb5fce219d65087b2"
+  apiKey: "AIzaSyB8KOQlPEVaq1ZgzvLlxi-yPJ7BVftg9F8",
+  authDomain: "ig-otp-login.firebaseapp.com",
+  databaseURL: "https://ig-otp-login-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ig-otp-login",
+  storageBucket: "ig-otp-login.firebasestorage.app",
+  messagingSenderId: "181785850297",
+  appId: "1:181785850297:web:f667eca93115d9c0658668",
+  measurementId: "G-E4RVHKEHLD"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
