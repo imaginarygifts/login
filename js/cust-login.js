@@ -14,7 +14,8 @@ serverTimestamp
 
 /* 🔥 FIREBASE CONFIG */
 const firebaseConfig = {
-  apiKey: AIzaSyAoEKRVuQKkbO5simGLszp-Y8mCTRAbFfQ: "sellfix-web.firebaseapp.com",
+  apiKey: AIzaSyAoEKRVuQKkbO5simGLszp-Y8mCTRAbFfQ,
+authDomain: "sellfix-web.firebaseapp.com",
   projectId: "sellfix-web",
   appId: "1:381995495462:web:39c4d5cfcbdfeaa9c2b6e7"
 };
