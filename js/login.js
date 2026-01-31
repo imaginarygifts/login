@@ -26,6 +26,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 /* ================= STATE ================= */
+
+console.log("LOGIN JS LOADED");
+
+
 let confirmationResult = null;
 let resendTimer = null;
 let resendSeconds = 60;
