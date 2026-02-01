@@ -1,23 +1,10 @@
-import { initializeApp } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+// js/login.js
+import { auth } from "./firebase.js";
 
 import {
-  getAuth,
   RecaptchaVerifier,
   signInWithPhoneNumber
-} from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-/* 🔥 FIREBASE CONFIG */
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  appId: "YOUR_APP_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 /* ================= DOM ================= */
 const phoneInput = document.getElementById("phone");
@@ -40,7 +27,7 @@ sendOtpBtn.onclick = async () => {
   const raw = phoneInput.value.trim();
 
   if (!/^\d{10}$/.test(raw)) {
-    alert("Enter valid 10 digit number");
+    alert("Enter valid 10 digit mobile number");
     return;
   }
 
@@ -57,9 +44,9 @@ sendOtpBtn.onclick = async () => {
     otpBox.style.display = "block";
     alert("OTP sent");
 
-  } catch (e) {
-    console.error(e);
-    alert(e.message);
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
   }
 };
 
@@ -83,8 +70,8 @@ verifyOtpBtn.onclick = async () => {
 
     location.href = redirect;
 
-  } catch (e) {
-    console.error(e);
+  } catch (err) {
+    console.error(err);
     alert("Invalid or expired OTP");
   }
 };
