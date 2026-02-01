@@ -26,6 +26,11 @@ body {
   font-size: 13px;
 }
 
+.auth-btn:hover {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
 .category-scroll {
   display: flex;
   gap: 10px;
