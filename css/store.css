@@ -8,12 +8,22 @@ body {
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 10;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(10px);
-  padding: 14px 16px;
-  text-align: center;
-  font-weight: 600;
+  z-index: 1000;
+  background: #000;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+.auth-btn {
+  background: linear-gradient(135deg,#ff7a18,#ff3d54);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 13px;
 }
 
 .category-scroll {
