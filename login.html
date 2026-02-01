@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+
+  <div style="max-width:360px;margin:60px auto;font-family:sans-serif">
+    <h2>Login with OTP</h2>
+
+    <input
+      id="phone"
+      placeholder="10 digit mobile number"
+      maxlength="10"
+      inputmode="numeric"
+      style="width:100%;padding:12px;margin-bottom:10px"
+    >
+
+    <div id="recaptcha-container"></div>
+
+    <button id="sendOtpBtn" style="width:100%;padding:12px">
+      Send OTP
+    </button>
+
+    <div id="otpBox" style="display:none;margin-top:12px">
+      <input
+        id="otp"
+        placeholder="Enter OTP"
+        inputmode="numeric"
+        style="width:100%;padding:12px;margin-bottom:10px"
+      >
+
+      <button id="verifyOtpBtn" style="width:100%;padding:12px">
+        Verify OTP
+      </button>
+    </div>
+  </div>
+
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>
