@@ -292,6 +292,7 @@ window.orderNow = async function () {
     // ================================
     const orderData = {
       orderNumber,
+customerId: auth.currentUser?.uid || null,
 
       productId,
       productName: product?.name || "",
