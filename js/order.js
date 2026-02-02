@@ -8,6 +8,7 @@ import {
   updateDoc,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth } from "firebase/auth";
 
 /* ======================================================
    GLOBAL STATE
@@ -20,6 +21,10 @@ let appliedCoupon = null;
 let selectedPaymentMode = "online";
 let availableCoupons = [];
 let orderNumber = null;
+
+
+const auth = getAuth();
+
 
 /* ======================================================
    LOAD ORDER DATA
@@ -248,6 +253,9 @@ async function saveOrder(paymentMode, paymentStatus, paymentId = null) {
 
   const order = {
     orderNumber,
+
+  customerId: auth.currentUser?.uid || null, // 🔥 REQUIRED
+  customerPhone: auth.currentUser?.phoneNumber || null,
 
     productId: orderData.product.id || null,
     productName: orderData.product.name,
