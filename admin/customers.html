@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      background: #0b0d12;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+    }
+
+    header {
+      padding: 14px 16px;
+      font-size: 18px;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      text-align: left;
+    }
+
+    th {
+      opacity: .7;
+      font-size: 13px;
+    }
+
+    tr:hover {
+      background: rgba(255,255,255,.03);
+    }
+
+    .btn {
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #00ff9c;
+      color: #000;
+      font-size: 12px;
+      cursor: pointer;
+      border: none;
+    }
+
+    .muted {
+      opacity: .6;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<header>👤 Customers</header>
+
+<table>
+  <thead>
+    <tr>
+      <th>Mobile</th>
+      <th>First Login</th>
+      <th>Last Login</th>
+      <th>Total Orders</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="customerTable"></tbody>
+</table>
+
+<script type="module" src="js/customers.js"></script>
+</body>
+</html>
