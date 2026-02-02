@@ -248,6 +248,7 @@ async function saveOrder(paymentMode, paymentStatus, paymentId = null) {
 
   const order = {
     orderNumber,
+customerId: auth.currentUser?.uid || null,
 
     productId: orderData.product.id || null,
     productName: orderData.product.name,
