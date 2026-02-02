@@ -40,6 +40,15 @@ const bulkType = document.getElementById("bulkActionType");
 const bulkValue = document.getElementById("bulkActionValue");
 const selectAllCheckbox = document.getElementById("selectAllOrders");
 
+/* ================= URL FILTER ================= */
+const params = new URLSearchParams(window.location.search);
+const customerPhone = params.get("customer");
+
+if (customerPhone && searchInput) {
+  searchInput.value = customerPhone;
+}
+
+
 /* ================= BULK ACTION OPTIONS ================= */
 bulkType.addEventListener("change", () => {
   bulkValue.innerHTML = `<option value="">Select Value</option>`;
