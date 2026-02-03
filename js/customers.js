@@ -6,6 +6,8 @@ import {
 
 const table = document.getElementById("customerTable");
 
+alert("JavaScript is working!");
+
 /* ================= LOAD CUSTOMERS FROM ORDERS ================= */
 async function loadCustomers() {
   const snap = await getDocs(collection(db, "orders"));
