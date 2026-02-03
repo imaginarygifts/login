@@ -170,11 +170,12 @@ function applyFilters() {
     if (tagFilter.value && !(o.tags || []).includes(tagFilter.value)) return false;
 
     if (search) {
-      const t =
-        (o.orderNumber || "") +
-        (o.productName || "") +
-        (o.customer?.name || "") +
-        (o.customer?.phone || "");
+     const t =
+  (o.orderNumber || "") +
+  (o.productName || "") +
+  (o.customer?.name || "") +
+  (o.customer?.phone || "") +
+  (o.customerPhone || "");
       if (!t.toLowerCase().includes(search)) return false;
     }
     return true;
