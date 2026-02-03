@@ -41,14 +41,11 @@ const bulkValue = document.getElementById("bulkActionValue");
 const selectAllCheckbox = document.getElementById("selectAllOrders");
 
 
-const params = new URLSearchParams(location.search);
 const customerPhone = params.get("customer");
 
-if (customerPhone) {
-  // apply filter automatically
+if (customerPhone && searchInput) {
   searchInput.value = customerPhone;
 }
-
 
 /* ================= BULK ACTION OPTIONS ================= */
 bulkType.addEventListener("change", () => {
