@@ -1,4 +1,4 @@
-import { db } from "./firebase.js";
+import { db } from "../js/firebase.js";
 import {
   collection,
   getDocs
@@ -6,9 +6,6 @@ import {
 
 const table = document.getElementById("customerTable");
 
-alert("JavaScript is working!");
-
-/* ================= LOAD CUSTOMERS FROM ORDERS ================= */
 async function loadCustomers() {
   const snap = await getDocs(collection(db, "orders"));
   table.innerHTML = "";
@@ -34,18 +31,13 @@ async function loadCustomers() {
       });
     } else {
       const c = map.get(phone);
-      c.count += 1;
+      c.count++;
       if (o.createdAt < c.first) c.first = o.createdAt;
       if (o.createdAt > c.last) c.last = o.createdAt;
     }
   });
 
-  renderCustomers([...map.values()]);
-}
-
-/* ================= RENDER ================= */
-function renderCustomers(list) {
-  if (!list.length) {
+  if (!map.size) {
     table.innerHTML = `
       <tr>
         <td colspan="5" class="muted">No customers found</td>
@@ -54,11 +46,10 @@ function renderCustomers(list) {
     return;
   }
 
-  list
+  [...map.values()]
     .sort((a, b) => b.last - a.last)
     .forEach(c => {
       const tr = document.createElement("tr");
-
       tr.innerHTML = `
         <td>${c.phone}</td>
         <td class="muted">${formatDate(c.first)}</td>
@@ -66,19 +57,16 @@ function renderCustomers(list) {
         <td>${c.count}</td>
         <td>
           <button class="btn"
-            onclick="viewOrders('${c.phone}')">
+            onclick="location.href='orders.html?customer=${encodeURIComponent(c.phone)}'">
             View Orders
           </button>
         </td>
       `;
-
       table.appendChild(tr);
     });
 }
 
-/* ================= HELPERS ================= */
 function formatDate(ts) {
-  if (!ts) return "—";
   return new Date(ts).toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "short",
@@ -86,10 +74,4 @@ function formatDate(ts) {
   });
 }
 
-/* ================= NAV ================= */
-window.viewOrders = function (phone) {
-  location.href = `orders.html?customer=${encodeURIComponent(phone)}`;
-};
-
-/* INIT */
 loadCustomers();
