@@ -250,45 +250,61 @@ async function saveOrder(paymentMode, paymentStatus, paymentId = null) {
   const customer = validateForm();
   if (!customer) return null;
 
+  const user = auth.currentUser || null;
+
   orderNumber = await generateOrderNumber();
 
   const order = {
     orderNumber,
 
-  customerId: auth.currentUser?.uid || null, // 🔥 REQUIRED
-  customerPhone: auth.currentUser?.phoneNumber || null,
+    /* 🔥 CUSTOMER LINKING (VERY IMPORTANT) */
+    customerId: user ? user.uid : null,
+    customerPhone: user ? user.phoneNumber : customer.phone || null,
 
+    /* PRODUCT */
     productId: orderData.product.id || null,
     productName: orderData.product.name,
     productImage: orderData.product.images?.[0] || "",
     categoryId: orderData.product.categoryId || null,
     tags: orderData.product.tags || [],
 
+    /* VARIANTS */
     variants: {
       color: orderData.color || null,
       size: orderData.size || null
     },
 
+    /* CUSTOM OPTIONS */
     customOptions: Object.keys(orderData.options || {}).map(i => ({
-      label: orderData.product.customOptions[i]?.label,
+      label: orderData.product.customOptions?.[i]?.label || "",
       value: orderData.optionValues?.[i] || "Selected",
       image: orderData.imageLinks?.[i] || null
     })),
 
+    /* PRICING */
     pricing: {
       subTotal,
       discount,
       finalAmount
     },
 
-    customer,
+    /* CUSTOMER DETAILS (FORM DATA) */
+    customer: {
+      name: customer.name,
+      phone: customer.phone,
+      address: customer.address,
+      pincode: customer.pincode
+    },
 
+    /* PAYMENT */
     payment: {
       mode: paymentMode,
       status: paymentStatus,
-      paymentId
+      paidAmount: paymentStatus === "paid" ? finalAmount : 0,
+      paymentId: paymentId || null
     },
 
+    /* META */
     orderStatus: "pending",
     source: "frontend",
     createdAt: Date.now()
