@@ -8,24 +8,28 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import {
-  getAuth
+  getAuth,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const auth = getAuth();
-const list = document.getElementById("ordersList");
+const ordersList = document.getElementById("ordersList");
 
-/* ================= AUTH GUARD ================= */
-auth.onAuthStateChanged(user => {
+/* ================= AUTH CHECK ================= */
+onAuthStateChanged(auth, user => {
   if (!user) {
     localStorage.setItem("redirectAfterLogin", location.href);
     location.href = "login.html";
     return;
   }
-  loadOrders(user.uid);
+
+  loadMyOrders(user.uid);
 });
 
-/* ================= LOAD ORDERS ================= */
-async function loadOrders(uid) {
+/* ================= LOAD MY ORDERS ================= */
+async function loadMyOrders(uid) {
+  ordersList.innerHTML = "<p>Loading orders...</p>";
+
   const q = query(
     collection(db, "orders"),
     where("customerId", "==", uid),
@@ -34,8 +38,11 @@ async function loadOrders(uid) {
 
   const snap = await getDocs(q);
 
+  ordersList.innerHTML = "";
+
   if (snap.empty) {
-    list.innerHTML = `<div class="empty">No orders yet</div>`;
+    ordersList.innerHTML =
+      `<p style="opacity:.6;text-align:center">No orders found</p>`;
     return;
   }
 
@@ -44,37 +51,17 @@ async function loadOrders(uid) {
 
     const div = document.createElement("div");
     div.className = "order-card";
+
     div.onclick = () =>
       location.href = `order-view.html?id=${doc.id}`;
 
     div.innerHTML = `
-      <div class="order-top">
-        <span>#${o.orderNumber || "—"}</span>
-        <span>${formatDate(o.createdAt)}</span>
-      </div>
-
-      <div class="order-product">
-        ${o.productName || "Product"}
-      </div>
-
-      <div class="order-meta">
-        <span>₹${o.pricing?.finalAmount || 0}</span>
-        <span class="status ${o.orderStatus}">
-          ${o.orderStatus}
-        </span>
-      </div>
+      <div><b>${o.orderNumber}</b></div>
+      <div>${o.productName}</div>
+      <div>₹${o.pricing?.finalAmount || 0}</div>
+      <div>Status: ${o.orderStatus}</div>
     `;
 
-    list.appendChild(div);
-  });
-}
-
-/* ================= HELPERS ================= */
-function formatDate(ts) {
-  if (!ts) return "";
-  return new Date(ts).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
+    ordersList.appendChild(div);
   });
 }
