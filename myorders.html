@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>My Orders</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
     body {
@@ -14,68 +14,61 @@
     }
 
     header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       padding: 14px 16px;
       font-size: 18px;
       font-weight: 700;
       border-bottom: 1px solid rgba(255,255,255,.1);
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
 
-    header span {
+    .back {
       cursor: pointer;
-      opacity: .7;
+      font-size: 20px;
     }
 
-    .orders {
+    #ordersList {
       padding: 12px;
     }
 
     .order-card {
       background: #131722;
-      border-radius: 14px;
+      border-radius: 12px;
       padding: 14px;
       margin-bottom: 12px;
-      cursor: pointer;
-      transition: background .2s;
+      border: 1px solid rgba(255,255,255,.08);
     }
 
-    .order-card:hover {
-      background: #1b2030;
+    .order-card img {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      margin-right: 12px;
     }
 
-    .order-top {
+    .row {
       display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      opacity: .7;
+      gap: 12px;
+      align-items: center;
     }
 
-    .order-product {
-      margin: 8px 0;
-      font-size: 15px;
-      font-weight: 600;
+    .muted {
+      opacity: .6;
+      font-size: 13px;
     }
 
-    .order-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
+    .price {
+      font-weight: 700;
+      margin-top: 6px;
     }
 
     .status {
-      padding: 4px 8px;
-      border-radius: 8px;
-      font-size: 12px;
+      margin-top: 4px;
+      font-size: 13px;
       text-transform: capitalize;
     }
-
-    .pending { background: #f59e0b; color: #000; }
-    .ready { background: #38bdf8; color: #000; }
-    .shipped { background: #6366f1; }
-    .delivered { background: #22c55e; color: #000; }
-    .cancelled { background: #ef4444; }
 
     .empty {
       text-align: center;
@@ -87,11 +80,11 @@
 <body>
 
 <header>
-  <span onclick="history.back()">←</span>
+  <span class="back" onclick="history.back()">←</span>
   My Orders
 </header>
 
-<div class="orders" id="ordersList"></div>
+<div id="ordersList">Loading orders…</div>
 
 <script type="module" src="js/myorders.js"></script>
 </body>
