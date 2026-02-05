@@ -1,4 +1,5 @@
 import { db, auth } from "./firebase.js";
+
 import {
   collection,
   query,
@@ -13,44 +14,59 @@ import {
 
 const listEl = document.getElementById("ordersList");
 
-/* ================= UI ================= */
+/* ================= RENDER ================= */
 function renderOrders(orders) {
   listEl.innerHTML = "";
 
   if (!orders.length) {
-    listEl.innerHTML = `<p class="muted">No orders found</p>`;
+    listEl.innerHTML = `<div class="empty">No orders found</div>`;
     return;
   }
 
   orders.forEach(o => {
-    const div = document.createElement("div");
-    div.className = "order-card";
+    const card = document.createElement("div");
+    card.className = "order-card";
 
-    div.innerHTML = `
-      <div><strong>${o.productName}</strong></div>
-      <div class="muted">Order: ${o.orderNumber}</div>
-      <div>Status: ${o.orderStatus}</div>
-      <div>₹${o.pricing?.finalAmount || 0}</div>
+    card.innerHTML = `
+      <div class="row">
+        <img src="${o.productImage || 'img/no-image.png'}">
+        <div>
+          <div><strong>${o.productName}</strong></div>
+          <div class="muted">${o.orderNumber}</div>
+        </div>
+      </div>
+
+      <div class="price">₹${o.pricing?.finalAmount || 0}</div>
+      <div class="status">Status: ${o.orderStatus}</div>
+      <div class="muted">
+        Payment: ${o.payment?.mode} (${o.payment?.status})
+      </div>
     `;
 
-    listEl.appendChild(div);
+    listEl.appendChild(card);
   });
 }
 
-/* ================= LOAD ================= */
+/* ================= LOAD ORDERS ================= */
 async function loadOrders(uid) {
-  const q = query(
-    collection(db, "orders"),
-    where("customerId", "==", uid),
-    orderBy("createdAt", "desc")
-  );
+  try {
+    const q = query(
+      collection(db, "orders"),
+      where("customerId", "==", uid),
+      orderBy("createdAt", "desc")
+    );
 
-  const snap = await getDocs(q);
-  const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  renderOrders(orders);
+    const snap = await getDocs(q);
+    const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    renderOrders(orders);
+  } catch (err) {
+    console.error("ORDER LOAD ERROR:", err);
+    listEl.innerHTML = `<div class="empty">Failed to load orders</div>`;
+  }
 }
 
-/* ================= AUTH ================= */
+/* ================= AUTH SAFE ================= */
 onAuthStateChanged(auth, user => {
   if (!user) {
     location.href = "login.html";
