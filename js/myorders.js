@@ -52,8 +52,7 @@ async function loadOrders(uid) {
   try {
     const q = query(
       collection(db, "orders"),
-      where("customerId", "==", uid),
-      orderBy("createdAt", "desc")
+      where("customerId", "==", uid)
     );
 
     const snap = await getDocs(q);
